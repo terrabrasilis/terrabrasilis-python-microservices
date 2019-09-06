@@ -1,0 +1,6 @@
+[email]
+to: name_mail@domain.com.br
+from: name_mail@domain.com
+server: smtp.domain.com
+port: 587
+pass: allSecretChars

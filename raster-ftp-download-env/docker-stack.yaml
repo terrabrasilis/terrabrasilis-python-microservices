@@ -1,0 +1,19 @@
+version: '3.2'
+services:
+  raster-ftp-download:
+    image: terrabrasilis/raster-ftp-download:v0.1
+    networks:
+      - proxy
+    volumes: 
+      - /data/raster/download:/usr/local/data
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.master1==master1
+      restart_policy:
+        condition: on-failure
+
+networks:
+  proxy:
+    external: true

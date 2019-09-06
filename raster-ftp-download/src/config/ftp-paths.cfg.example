@@ -1,0 +1,5 @@
+[developer] 
+download: <a/local/directory/to/store/downloaded/files>
+
+[production] 
+download: <a/host/directory/to/store/downloaded/files>

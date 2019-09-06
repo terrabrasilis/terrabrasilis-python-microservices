@@ -1,0 +1,30 @@
+[production]
+schema: public
+table: mapeamento_2018_geral
+
+[publish]
+schema: public
+table: mapeamento_2018_geral
+output_data_file: deter_cerrado_portion.sql
+script_file: deter_cerrado_intersect.sql
+drop_file: deter_cerrado_drop.sql
+
+[publish_sfs]
+sequence: deter_cerrado_api_seq
+jobber_schema: public
+jobber_tables: {'tb1':'deter_cerrado_alerts',
+                'tb2':'deter_cerrado_alerts_ucs',
+                'tb3':'deter_cerrado_alerts_outside_ucs',
+                'tb4':'deter_cerrado_alerts_ucs_joined'}
+input_schema: public
+input_table: mapeamento_2018_geral
+output_schema: public
+output_table: deter_cerrado_mun_ucs
+county_table: estado_mun_2017
+uc_table: ucs_cerrado_2018
+limit_cerrado: limit_cerrado_without_ucs
+
+[dashboarddatamodel]
+schema: public
+table: mapeamento_2018_geral
+output_data_file: deter_cerrado_portion.sql

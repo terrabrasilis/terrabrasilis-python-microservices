@@ -1,0 +1,8 @@
+# python cache
+/configuration/__pycache__/
+/configuration/src/__pycache__/
+/postgresql/__pycache__/
+/postgresql/src/__pycache__/
+
+# ignore log files
+*.log

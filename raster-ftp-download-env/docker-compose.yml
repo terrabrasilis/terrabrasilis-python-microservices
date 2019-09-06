@@ -1,0 +1,15 @@
+# To run this compose file
+# docker-compose -f raster-ftp-download-env/docker-compose.yml up
+#
+# To run in detached mode
+# docker-compose -f raster-ftp-download-env/docker-compose.yml up -d
+
+version: "3.2"
+
+services:
+  raster-ftp-download:
+    image: terrabrasilis/raster-ftp-download:v0.1
+    volumes: 
+      - /home/jether/Desktop/teste_deterb_imagem/servidor_imagens_projeto_fip_cerrado/scripts/to_process:/usr/local/data
+      - /home/jether/Desktop/teste_deterb_imagem/servidor_imagens_projeto_fip_cerrado/scripts/:/usr/local/raster-ftp-download/log
+      - /home/jether/Desktop/DEV/workspace/terrabrasilis/terrabrasilis-webapp/python-microservices/raster-ftp-download/src/config/:/usr/local/data/config

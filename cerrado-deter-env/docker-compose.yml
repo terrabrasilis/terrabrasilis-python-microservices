@@ -1,0 +1,13 @@
+# To run this compose file
+# docker-compose -f cerrado-deter-environment/docker-compose.yml up
+#
+# To run in detached mode
+# docker-compose -f cerrado-deter-environment/docker-compose.yml up -d
+
+version: "3"
+
+services:
+
+  # Cerrado deter harvesting
+  cerradodeter:
+    image: terrabrasilis/cerradodeter:V0.6

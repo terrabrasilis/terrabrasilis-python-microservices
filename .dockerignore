@@ -1,0 +1,21 @@
+# no copy git files
+.gitignore
+.git/
+
+# ignore virtual env
+**/env/
+
+# ignore logs
+**/log/
+
+# Ignore generated python files
+**/*.pyc
+
+# ignore all config files used for provide some sensitive parameters for app
+#**/*.cfg
+
+# ignore all sql scripts
+**/*.sql
+
+# ignore config files
+**/*.cfg

@@ -1,0 +1,21 @@
+version: '3.2'
+services:
+  raster-publisher:
+    image: terrabrasilis/raster-publisher:v0.1
+    networks:
+      - proxy
+    volumes:       
+      - /data/raster/processed:/usr/local/data/processed
+      - /data/raster/log/:/usr/local/raster-publisher/log
+      - /data/raster/config/:/usr/local/data/config
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.master1==master1
+      restart_policy:
+        condition: on-failure
+
+networks:
+  proxy:
+    external: true

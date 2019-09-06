@@ -1,0 +1,13 @@
+[developer] 
+from= <a/local/directory/to/store/input/files>
+to= <a/local/directory/to/store/output/files>
+url= <the URL to GeoServer to push layers when test>
+user= <the user of GeoServer>
+password= <the password of GeoServer>
+
+[production] 
+from= <a/host/directory/to/store/input/files>
+to= <a/host/directory/to/store/output/files>
+url= <the URL to GeoServer to push layers>
+user= <the user of GeoServer>
+password= <the password of GeoServer>

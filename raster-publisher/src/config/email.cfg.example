@@ -1,0 +1,6 @@
+[email]
+to= <list of emails separated by a comma>
+from= <an email used to send messages>
+server= <SMTP server>
+port= <SMTP port>
+pass= <password>

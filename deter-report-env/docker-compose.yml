@@ -1,0 +1,12 @@
+# To run this compose file
+# docker-compose -f deter-report-env/docker-compose.yml up
+#
+# To run in detached mode
+# docker-compose -f deter-report-env/docker-compose.yml up -d
+
+version: "3"
+
+services:
+
+  deter_report:
+    image: terrabrasilis/deter-report:v0.3

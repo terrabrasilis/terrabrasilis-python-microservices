@@ -1,0 +1,16 @@
+# To run this compose file
+# docker-compose -f raster-process-env/docker-compose.yml up
+#
+# To run in detached mode
+# docker-compose -f raster-process-env/docker-compose.yml up -d
+
+version: "3.2"
+
+services:
+  raster-process:
+    image: terrabrasilis/raster-process:v0.1
+    volumes: 
+      - /home/jether/Desktop/teste_deterb_imagem/servidor_imagens_projeto_fip_cerrado/scripts/to_process:/usr/local/data
+      - /home/jether/Desktop/teste_deterb_imagem/servidor_imagens_projeto_fip_cerrado/scripts/to_process/translate:/usr/local/data/processed
+      - /home/jether/Desktop/teste_deterb_imagem/servidor_imagens_projeto_fip_cerrado/scripts/:/usr/local/raster-process/log
+      - /home/jether/Desktop/DEV/workspace/terrabrasilis/terrabrasilis-webapp/python-microservices/raster-process/src/config/:/usr/local/data/config

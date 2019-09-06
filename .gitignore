@@ -1,0 +1,9 @@
+.vscode/
+# ignore python intermediary files
+*.pyc
+# ignore virtual environment for python
+*/env/
+# ignore log directory
+*/log/
+# ignore all config files to protect the sensitive data
+**/*.cfg
