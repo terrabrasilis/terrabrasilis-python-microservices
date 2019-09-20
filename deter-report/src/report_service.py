@@ -32,24 +32,15 @@ class ReportService:
 
             releaseDate = dao.getDateOfLastReleaseData()
             releaseDate = releaseDate["release_date"].strftime('%d/%m/%Y')
-            currentMonthYear = datetime.today().strftime('%m/%Y')
+            #currentMonthYear = datetime.today().strftime('%m/%Y')
 
-            data = dao.getLastAlerts(deforestation_classes)
-            bodyHtml = [
-                '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:400px;">',
-                '<tr><td colspan="2" style="color:darkblue;border-bottom:1px solid gray;">DESMATAMENTO - valores publicados para o mês/ano {0}.</td></tr>'.format(currentMonthYear),
-                '<tr><td>Número de polígonos:</td><td>{0}</td></tr>'.format(data["num_polygons"]),
-                '<tr><td>Data inicial:</td><td>{0}</td></tr>'.format(data["start_date"].strftime('%d/%m/%Y') if data["start_date"] else '-'),
-                '<tr><td>Data final:</td><td>{0}</td></tr>'.format(data["end_date"].strftime('%d/%m/%Y') if data["end_date"] else '-'),
-                '<tr><td>Área medida:</td><td>{0} km²</td></tr>'.format(data["area"]),
-                '</table><br><br>'
-            ]
+            bodyHtml=[]
 
             data = dao.getNewAlerts(deforestation_classes)
             newDeforestation=data["area"]
             bodyHtml += [
                 '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:400px;">',
-                '<tr><td colspan="2" style="color:darkblue;border-bottom:1px solid gray;">DESMATAMENTO - novos alertas.</td></tr>',
+                '<tr><td colspan="2" style="color:darkblue;border-bottom:1px solid gray;">DESMATAMENTO - novos alertas (TOTAL).</td></tr>',
                 '<tr><td>Número de polígonos:</td><td>{0}</td></tr>'.format(data["num_polygons"]),
                 '<tr><td>Data inicial:</td><td>{0}</td></tr>'.format(data["start_date"].strftime('%d/%m/%Y') if data["start_date"] else '-'),
                 '<tr><td>Data final:</td><td>{0}</td></tr>'.format(data["end_date"].strftime('%d/%m/%Y') if data["end_date"] else '-'),
@@ -57,33 +48,26 @@ class ReportService:
                 '</table><br><br>'
             ]
 
-            data = dao.getAllAlerts(deforestation_classes)
+            data = dao.getNewAlertsDayByDay(deforestation_classes)
             bodyHtml += [
                 '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:400px;">',
-                '<tr><td colspan="2" style="color:darkblue;border-bottom:1px solid gray;">DESMATAMENTO - valor total para o mês/ano {0} (publicado + novos alertas).</td></tr>'.format(currentMonthYear),
-                '<tr><td>Número de polígonos:</td><td>{0}</td></tr>'.format(data["num_polygons"]),
-                '<tr><td>Data inicial:</td><td>{0}</td></tr>'.format(data["start_date"].strftime('%d/%m/%Y') if data["start_date"] else '-'),
-                '<tr><td>Data final:</td><td>{0}</td></tr>'.format(data["end_date"].strftime('%d/%m/%Y') if data["end_date"] else '-'),
-                '<tr><td>Área medida:</td><td>{0} km²</td></tr>'.format(data["area"]),
-                '</table><br><br>'
+                '<tr><td colspan="3" style="color:darkblue;border-bottom:1px solid gray;">DESMATAMENTO - novos alertas (DIA A DIA).</td></tr>',
+                '<tr><td>Data</td><td>Número de polígonos</td><td>Área medida</td></tr>'
             ]
-
-            data = dao.getLastAlerts(degradation_classes)
-            bodyHtml += [
-                '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:400px;">',
-                '<tr><td colspan="2" style="color:darkblue;border-bottom:1px solid gray;">DEGRADAÇÃO - valores publicados para o mês/ano {0}.</td></tr>'.format(currentMonthYear),
-                '<tr><td>Número de polígonos:</td><td>{0}</td></tr>'.format(data["num_polygons"]),
-                '<tr><td>Data inicial:</td><td>{0}</td></tr>'.format(data["start_date"].strftime('%d/%m/%Y') if data["start_date"] else '-'),
-                '<tr><td>Data final:</td><td>{0}</td></tr>'.format(data["end_date"].strftime('%d/%m/%Y') if data["end_date"] else '-'),
-                '<tr><td>Área medida:</td><td>{0} km²</td></tr>'.format(data["area"]),
-                '</table><br><br>'
-            ]
+            for record in data:
+                bodyHtml += [
+                    '<tr><td>{0}</td>'.format(record["date"].strftime('%d/%m/%Y') if record["date"] else '-'),
+                    '<td>{0}</td>'.format(record["num_polygons"]),
+                    '<td>{0} km²</td></tr>'.format(record["area"]),
+                ]
+            
+            bodyHtml += ['</table><br><br>']
 
             data = dao.getNewAlerts(degradation_classes)
             newDegradation=data["area"]
             bodyHtml += [
                 '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:400px;">',
-                '<tr><td colspan="2" style="color:darkblue;border-bottom:1px solid gray;">DEGRADAÇÃO - novos alertas.</td></tr>',
+                '<tr><td colspan="2" style="color:darkblue;border-bottom:1px solid gray;">DEGRADAÇÃO - novos alertas (TOTAL).</td></tr>',
                 '<tr><td>Número de polígonos:</td><td>{0}</td></tr>'.format(data["num_polygons"]),
                 '<tr><td>Data inicial:</td><td>{0}</td></tr>'.format(data["start_date"].strftime('%d/%m/%Y') if data["start_date"] else '-'),
                 '<tr><td>Data final:</td><td>{0}</td></tr>'.format(data["end_date"].strftime('%d/%m/%Y') if data["end_date"] else '-'),
@@ -91,16 +75,20 @@ class ReportService:
                 '</table><br><br>'
             ]
 
-            data = dao.getAllAlerts(degradation_classes)
+            data = dao.getNewAlertsDayByDay(degradation_classes)
             bodyHtml += [
                 '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:400px;">',
-                '<tr><td colspan="2" style="color:darkblue;border-bottom:1px solid gray;">DEGRADAÇÃO - valor total para o mês/ano {0} (publicado + novos alertas).</td></tr>'.format(currentMonthYear),
-                '<tr><td>Número de polígonos:</td><td>{0}</td></tr>'.format(data["num_polygons"]),
-                '<tr><td>Data inicial:</td><td>{0}</td></tr>'.format(data["start_date"].strftime('%d/%m/%Y') if data["start_date"] else '-'),
-                '<tr><td>Data final:</td><td>{0}</td></tr>'.format(data["end_date"].strftime('%d/%m/%Y') if data["end_date"] else '-'),
-                '<tr><td>Área medida:</td><td>{0} km²</td></tr>'.format(data["area"]),
-                '</table><br><br>'
+                '<tr><td colspan="3" style="color:darkblue;border-bottom:1px solid gray;">DEGRADAÇÃO - novos alertas (DIA A DIA).</td></tr>',
+                '<tr><td>Data</td><td>Número de polígonos</td><td>Área medida</td></tr>'
             ]
+            for record in data:
+                bodyHtml += [
+                    '<tr><td>{0}</td>'.format(record["date"].strftime('%d/%m/%Y') if record["date"] else '-'),
+                    '<td>{0}</td>'.format(record["num_polygons"]),
+                    '<td>{0} km²</td></tr>'.format(record["area"]),
+                ]
+            
+            bodyHtml += ['</table><br><br>']
 
             if newDeforestation>0 or newDegradation>0:
                 self.__sendMail(bodyHeader, bodyFooter, bodyHtml, releaseDate)
@@ -122,7 +110,7 @@ class ReportService:
                 <body>
                 <p>
                 <h3>{0}</h3>
-                <h4>Data dos dados liberados ao público: {3}</h4>
+                <h4>Data de liberação ao público (referente a data de auditoria): {3}</h4>
                 </p>
                 {1}
                 <p style="color:#C0C0C0;">{2}</p>

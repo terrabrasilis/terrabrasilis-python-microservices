@@ -22,31 +22,49 @@ class ReadDataDao:
         """
         sql = "SELECT COUNT(*) as num_polygons, MIN(date) as start_date, MAX(date) as end_date, SUM(areamunkm) as area "
         sql += "FROM terrabrasilis.deter_table "
-        sql += "WHERE date <= (SELECT date FROM public.deter_publish_date) "
+        sql += "WHERE date_audit <= (SELECT date FROM public.deter_publish_date) "
         sql += "AND to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
         sql += "AND to_char(date at time zone 'UTC', 'MM') = to_char(now() at time zone 'UTC', 'MM') "
         sql += "AND areatotalkm >= 0.0625 "
         sql += "AND uf != ('MS') "
         sql += "AND classname in ({0})".format(filter)
 
-        return self.__execSQL(sql)
+        return self.__execSQLWithSingleResult(sql)
 
     def getNewAlerts(self, filter):
         """
-        Read the new data from publishing table to last month.
+        Read the total values for new data from publishing table to last period.
 
         @return dict, the following values: {num_polygons,start_date,end_date,area}
         """
         sql = "SELECT COUNT(*) as num_polygons, MIN(date) as start_date, MAX(date) as end_date, SUM(areamunkm) as area "
         sql += "FROM terrabrasilis.deter_table "
-        sql += "WHERE date > (SELECT date FROM public.deter_publish_date) "
+        sql += "WHERE date_audit > (SELECT date FROM public.deter_publish_date) "
         sql += "AND to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
         sql += "AND to_char(date at time zone 'UTC', 'MM') = to_char(now() at time zone 'UTC', 'MM') "
         sql += "AND areatotalkm >= 0.0625 "
         sql += "AND uf != ('MS') "
         sql += "AND classname in ({0})".format(filter)
 
-        return self.__execSQL(sql)
+        return self.__execSQLWithSingleResult(sql)
+
+    def getNewAlertsDayByDay(self, filter):
+        """
+        Read the new data from publishing table to last period groupped by date.
+
+        @return dict, the following values: {num_polygons,start_date,end_date,area}
+        """
+        sql = "SELECT COUNT(*) as num_polygons, date, SUM(areamunkm) as area "
+        sql += "FROM terrabrasilis.deter_table "
+        sql += "WHERE date_audit > (SELECT date FROM public.deter_publish_date) "
+        sql += "AND to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
+        sql += "AND to_char(date at time zone 'UTC', 'MM') = to_char(now() at time zone 'UTC', 'MM') "
+        sql += "AND areatotalkm >= 0.0625 "
+        sql += "AND uf != ('MS') "
+        sql += "AND classname in ({0}) ".format(filter)
+        sql += "GROUP BY date ORDER BY date asc"
+
+        return self.__execSQLWithMultiResults(sql)
 
 
     def getAllAlerts(self, filter):
@@ -64,9 +82,9 @@ class ReadDataDao:
         sql += "AND uf != ('MS') "
         sql += "AND classname in ({0})".format(filter)
 
-        return self.__execSQL(sql)
+        return self.__execSQLWithSingleResult(sql)
         
-    def __execSQL(self, sql):
+    def __execSQLWithSingleResult(self, sql):
         data = None
         ret_data = {
             'num_polygons':0,
@@ -90,6 +108,30 @@ class ReadDataDao:
                 'end_date':data[0][2],
                 'area':round(data[0][3],2)
             }
+        
+        return ret_data
+
+    def __execSQLWithMultiResults(self, sql):
+        data = None
+        ret_data = []
+        try:
+            self.db.connect()
+            data = self.db.fetchData(sql)
+        except BaseException:
+            # by default return None
+            return data
+        finally:
+            self.db.close()
+
+        if(len(data)>1 and len(data[0])==3):
+            for record in data:
+                if(record[2]!=None):
+                    row={
+                        'num_polygons':record[0],
+                        'date':record[1],
+                        'area':round(record[2],2)
+                    }
+                    ret_data.append(row)
         
         return ret_data
 
