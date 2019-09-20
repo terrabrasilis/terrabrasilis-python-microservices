@@ -13,20 +13,20 @@ Use the dailyharvesting.cron to define the start time the job.
 To build image for this dockerfile use this command:
 
 ```bash
-docker build -t terrabrasilis/deter-report:v0.3 -f deter-report-env/Dockerfile .
+docker build -t terrabrasilis/deter-report:v0.4 -f deter-report-env/Dockerfile .
 ```
 
 To run without compose but with shell terminal, use this command:
 
 ```bash
-docker run -it terrabrasilis/deter-report:v0.3 sh
+docker run -it terrabrasilis/deter-report:v0.4 sh
 ```
 
 
 To run without compose and without shell terminal use this command:
 
 ```bash
-docker run -d --rm --name terrabrasilis_deter_report -v /tmp/deter-report:/usr/local/data terrabrasilis/deter-report:v0.3
+docker run -d --rm --name terrabrasilis_deter_report -v /tmp/deter-report:/usr/local/data terrabrasilis/deter-report:v0.4
 ```
 
 ## Run using compose

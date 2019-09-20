@@ -9,4 +9,4 @@ version: "3"
 services:
 
   deter_report:
-    image: terrabrasilis/deter-report:v0.3
+    image: terrabrasilis/deter-report:v0.4

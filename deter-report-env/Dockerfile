@@ -1,11 +1,11 @@
 # To build image for this dockerfile use this command:
-#   docker build -t terrabrasilis/deter-report:v0.3 -f deter-report-env/Dockerfile .
+#   docker build -t terrabrasilis/deter-report:v0.4 -f deter-report-env/Dockerfile .
 #
 # To run without compose but with shell terminal use this command:
-#   docker run --rm --name terrabrasilis_deter_report -v $PWD/deter-report/data:/usr/local/data -it terrabrasilis/deter-report:v0.3 sh
+#   docker run --rm --name terrabrasilis_deter_report -v $PWD/deter-report/data:/usr/local/data -it terrabrasilis/deter-report:v0.4 sh
 #
 # To run without compose and without shell terminal use this command:
-#   docker run -d --rm --name terrabrasilis_deter_report -v $PWD/deter-report/data:/usr/local/data terrabrasilis/deter-report:v0.3
+#   docker run -d --rm --name terrabrasilis_deter_report -v $PWD/deter-report/data:/usr/local/data terrabrasilis/deter-report:v0.4
 # 
 # Information from doc of help about run one container without an explicit service. Run in background
 # --------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ FROM python:3.5.2-alpine
 
 LABEL "br.inpe.dpi"="INPE/DPI-TerraBrasilis"
 LABEL br.inpe.dpi.terrabrasilis="microservice"
-LABEL version="v0.3"
+LABEL version="v0.4"
 LABEL author="Andre Carvalho"
 LABEL author.email="andre.carvalho@inpe.br"
 LABEL description="This microservice provides a task to reads data from publish database and send an e-mail with report \
