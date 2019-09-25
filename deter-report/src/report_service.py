@@ -30,76 +30,99 @@ class ReportService:
             deforestation_classes="'MINERACAO','DESMATAMENTO_VEG','DESMATAMENTO_CR'"
             degradation_classes="'CICATRIZ_DE_QUEIMADA','CS_GEOMETRICO','CS_DESORDENADO','DEGRADACAO'"
 
-            releaseDate = dao.getDateOfLastReleaseData()
-            releaseDate = releaseDate["release_date"].strftime('%d/%m/%Y')
-            #currentMonthYear = datetime.today().strftime('%m/%Y')
+            lastReleaseDate = dao.getDateOfLastReleaseData()
+            currentDate = lastReleaseDate["release_date"].strftime('%d/%m/%Y')
+            nextReleaseDate = lastReleaseDate["release_date"] + timedelta(days=7)
+            nextRelease = (nextReleaseDate).strftime('%d/%m/%Y')
+            releaseDate = (lastReleaseDate["release_date"] + timedelta(days=14)).strftime('%d/%m/%Y')
 
             bodyHtml=[]
 
-            data = dao.getNewAlerts(deforestation_classes)
-            newDeforestation=data["area"]
-            bodyHtml += [
-                '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:400px;">',
-                '<tr><td colspan="2" style="color:darkblue;border-bottom:1px solid gray;">DESMATAMENTO - novos alertas (TOTAL).</td></tr>',
-                '<tr><td>Número de polígonos:</td><td>{0}</td></tr>'.format(data["num_polygons"]),
-                '<tr><td>Data inicial:</td><td>{0}</td></tr>'.format(data["start_date"].strftime('%d/%m/%Y') if data["start_date"] else '-'),
-                '<tr><td>Data final:</td><td>{0}</td></tr>'.format(data["end_date"].strftime('%d/%m/%Y') if data["end_date"] else '-'),
-                '<tr><td>Área medida:</td><td>{0} km²</td></tr>'.format(data["area"]),
-                '</table><br><br>'
-            ]
-
+            # By deforestation classes
             data = dao.getNewAlertsDayByDay(deforestation_classes)
             bodyHtml += [
-                '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:400px;">',
-                '<tr><td colspan="3" style="color:darkblue;border-bottom:1px solid gray;">DESMATAMENTO - novos alertas (DIA A DIA).</td></tr>',
-                '<tr><td>Data</td><td>Número de polígonos</td><td>Área medida</td></tr>'
+                '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:500px;">',
+                '<tr><td colspan="3" style="color:white;border-bottom:1px solid #adadad;background-color:#636363;">DESMATAMENTO - novos avisos.</td></tr>',
+                '<tr style="color:darkblue;border-bottom:1px solid gray;background-color:#e1e1e1;"><td>Data</td><td>Número de polígonos</td><td>Área medida</td></tr>'
             ]
+            index=1
+            totalAreaLastWeek=0
             for record in data:
+                trStyle="#fafafa" if (index%2) else "#f1f1f1"
+                index=index+1
+                totalAreaLastWeek+=record["area"]
+
                 bodyHtml += [
-                    '<tr><td>{0}</td>'.format(record["date"].strftime('%d/%m/%Y') if record["date"] else '-'),
+                    '<tr style="background-color:{1};"><td>{0}</td>'.format(record["date"].strftime('%d/%m/%Y') if record["date"] else '-', trStyle),
                     '<td>{0}</td>'.format(record["num_polygons"]),
                     '<td>{0} km²</td></tr>'.format(record["area"]),
                 ]
-            
+
+                if(record["date"]==nextReleaseDate):
+                    bodyHtml += [
+                        '<tr style="color:black;background-color:#e1e1e1;"><td style="border-top:1px solid gray;" colspan="2">Fechamento semanal <b>de {0} até {1}</b></td><td style="border-top:1px solid gray; colspan="1"><b>{2}</b> km²</td></tr>'.format(currentDate,nextRelease,totalAreaLastWeek),
+                    ]
+
+            data = dao.getNewAlerts(deforestation_classes)
+            areaTotalDeforestation=data["area"]
+            polTotalDeforestation=data["num_polygons"]
+            intervalDeforestation='de {0} até {1}'.format(data["start_date"].strftime('%d/%m/%Y'),data["end_date"].strftime('%d/%m/%Y'))
+            bodyHtml += [
+                    '<tr><td colspan="3" style="color:black;border-bottom:1px solid gray;background-color:#e1e1e1;">DESMATAMENTO TOTAL {0}</td></tr>'.format(intervalDeforestation),
+                    '<tr><td>Todas</td>',
+                    '<td>{0}</td>'.format(polTotalDeforestation),
+                    '<td>{0} km²</td></tr>'.format(areaTotalDeforestation),
+                ]
+
             bodyHtml += ['</table><br><br>']
 
-            data = dao.getNewAlerts(degradation_classes)
-            newDegradation=data["area"]
-            bodyHtml += [
-                '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:400px;">',
-                '<tr><td colspan="2" style="color:darkblue;border-bottom:1px solid gray;">DEGRADAÇÃO - novos alertas (TOTAL).</td></tr>',
-                '<tr><td>Número de polígonos:</td><td>{0}</td></tr>'.format(data["num_polygons"]),
-                '<tr><td>Data inicial:</td><td>{0}</td></tr>'.format(data["start_date"].strftime('%d/%m/%Y') if data["start_date"] else '-'),
-                '<tr><td>Data final:</td><td>{0}</td></tr>'.format(data["end_date"].strftime('%d/%m/%Y') if data["end_date"] else '-'),
-                '<tr><td>Área medida:</td><td>{0} km²</td></tr>'.format(data["area"]),
-                '</table><br><br>'
-            ]
-
+            # By degradation classes
             data = dao.getNewAlertsDayByDay(degradation_classes)
             bodyHtml += [
-                '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:400px;">',
-                '<tr><td colspan="3" style="color:darkblue;border-bottom:1px solid gray;">DEGRADAÇÃO - novos alertas (DIA A DIA).</td></tr>',
-                '<tr><td>Data</td><td>Número de polígonos</td><td>Área medida</td></tr>'
+                '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:500px;">',
+                '<tr><td colspan="3" style="color:white;border-bottom:1px solid #adadad;background-color:#636363;">DEGRADAÇÃO - novos avisos.</td></tr>',
+                '<tr style="color:darkblue;border-bottom:1px solid gray;background-color:#e1e1e1;"><td>Data</td><td>Número de polígonos</td><td>Área medida</td></tr>'
             ]
+            index=1
+            totalAreaLastWeek=0
             for record in data:
+                trStyle="#fafafa" if (index%2) else "#f1f1f1"
+                index=index+1
+                totalAreaLastWeek+=record["area"]
                 bodyHtml += [
-                    '<tr><td>{0}</td>'.format(record["date"].strftime('%d/%m/%Y') if record["date"] else '-'),
+                    '<tr style="background-color:{1};"><td>{0}</td>'.format(record["date"].strftime('%d/%m/%Y') if record["date"] else '-', trStyle),
                     '<td>{0}</td>'.format(record["num_polygons"]),
                     '<td>{0} km²</td></tr>'.format(record["area"]),
                 ]
+
+                if(record["date"]==nextReleaseDate):
+                    bodyHtml += [
+                        '<tr style="color:black;background-color:#e1e1e1;"><td style="border-top:1px solid gray;" colspan="2">Fechamento semanal <b>de {0} até {1}</b></td><td style="border-top:1px solid gray; colspan="1"><b>{2}</b> km²</td></tr>'.format(currentDate,nextRelease,totalAreaLastWeek),
+                    ]
             
+            data = dao.getNewAlerts(degradation_classes)
+            areaTotalDegradation=data["area"]
+            polTotalDegradation=data["num_polygons"]
+            intervalDegradation='de {0} até {1}'.format(data["start_date"].strftime('%d/%m/%Y'),data["end_date"].strftime('%d/%m/%Y'))
+            bodyHtml += [
+                    '<tr><td colspan="3" style="color:black;border-bottom:1px solid gray;background-color:#e1e1e1;">DEGRADAÇÃO TOTAL {0}</td></tr>'.format(intervalDegradation),
+                    '<tr><td>Todas</td>',
+                    '<td>{0}</td>'.format(polTotalDegradation),
+                    '<td>{0} km²</td></tr>'.format(areaTotalDegradation),
+                ]
+
             bodyHtml += ['</table><br><br>']
 
-            if newDeforestation>0 or newDegradation>0:
-                self.__sendMail(bodyHeader, bodyFooter, bodyHtml, releaseDate)
+            if areaTotalDeforestation>0 or areaTotalDegradation>0:
+                self.__sendMail(bodyHeader, bodyFooter, bodyHtml, currentDate, releaseDate, nextRelease)
             else:
                 bodyHtml='<p><h3 style="color:red;">Não há incremento de área para publicar.</h3></p>'
-                self.__sendMail(bodyHeader, bodyFooter, bodyHtml, releaseDate)
+                self.__sendMail(bodyHeader, bodyFooter, bodyHtml, currentDate, releaseDate, nextRelease)
             
         except BaseException as error:
             self.__writeLog(error)
 
-    def __sendMail(self, bodyHeader, bodyFooter, bodyHtml, releaseDate):
+    def __sendMail(self, bodyHeader, bodyFooter, bodyHtml, currentDate, releaseDate, nextRelease):
 
         pathToConfigFile = os.path.abspath(os.path.dirname(__file__) + '/config')
 
@@ -110,16 +133,18 @@ class ReportService:
                 <body>
                 <p>
                 <h3>{0}</h3>
-                <h4>Data de liberação ao público (referente a data de auditoria): {3}</h4>
+                <h5>Dados liberados ao público até: {3}*</h5>
+                <h5>Em {4}* serão liberados os dados até: {5}*</h5>
+                <small><b>*</b>referente a data de auditoria</small>
                 </p>
                 {1}
                 <p style="color:#C0C0C0;">{2}</p>
                 </body>
             </html>
-            """.format(bodyHeader, bodyHtml, bodyFooter, releaseDate)
+            """.format(bodyHeader, bodyHtml, bodyFooter, currentDate, releaseDate, nextRelease)
         try:
             ref_date=datetime.today().strftime('%d/%m/%Y %H:%M:%S')
-            subject='[DETER-AMAZÔNIA] - Informe de novos alertas em {0}.'.format(ref_date)
+            subject='[DETER-AMAZÔNIA] - Informe de avisos em {0}.'.format(ref_date)
             mail = SenderMail(pathToConfigFile)
             mail.send(subject, bodyHeader, bodyHtml)
         except BaseException as error:
