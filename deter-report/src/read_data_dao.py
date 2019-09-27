@@ -135,15 +135,28 @@ class ReadDataDao:
         
         return ret_data
 
+    def getAuditDateOfLastReleaseData(self):
+        """
+        Read the audit date used to release data.
+        """
+        sql = "SELECT date FROM public.deter_publish_date"
+        
+        return self.__execSQL(sql)
+
     def getDateOfLastReleaseData(self):
         """
         Read the released date of the last data.
         """
-        sql = "SELECT date FROM public.deter_publish_date"
+        sql = "SELECT MAX(date) as date "
+        sql +="FROM terrabrasilis.deter_table "
+        sql +="WHERE date_audit <= (SELECT date FROM public.deter_publish_date)"
 
+        return self.__execSQL(sql)
+
+    def __execSQL(self, sql):
         data = None
         ret_data = {
-            'release_date':0,
+            'date':0,
         }
         try:
             self.db.connect()
@@ -156,7 +169,7 @@ class ReadDataDao:
 
         if(len(data)==1 and len(data[0])==1 and data[0][0]!=None):
             ret_data={
-                'release_date':data[0][0]
+                'date':data[0][0]
             }
         
         return ret_data

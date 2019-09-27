@@ -17,6 +17,39 @@ class ReportService:
         else:
             self.LOG_FILE=os.path.realpath(os.path.dirname(__file__)) + '/report_service.log'
 
+    def makeBodyTable(self, dao, nextFriday, nextDateOfData, classes):
+        # reference to weekly close
+        todayDate = datetime.today().date()
+        # get data from database
+        data = dao.getNewAlertsDayByDay(classes)
+        bodyHtml=[]
+        weekTotalHtml=""
+        itDate=None # crtl to print the provisioned last date of the release week
+        if(todayDate>nextFriday):
+            totalAreaLastWeek=0 # ctrl to sum area for last week
+            for record in data:
+                if(record["date"]<nextFriday):
+                    totalAreaLastWeek+=record["area"]
+                    itDate=record["date"]
+                else:
+                    break
+                    
+            weekTotalHtml='<tr style="color:black;background-color:#e1e1e1;"><td style="border-top:1px solid gray;" colspan="2">Fechamento semanal <b>de {0} até {1}</b></td><td style="border-top:1px solid gray; colspan="1"><b>{2}</b> km²</td></tr>'.format(nextDateOfData,(itDate).strftime('%d/%m/%Y'),totalAreaLastWeek)
+
+        index=1 # ctrl to alternate background color line
+        for record in data:
+            trStyle="#fafafa" if (index%2) else "#f1f1f1"
+            index=index+1
+            bodyHtml += [
+                '<tr style="background-color:{1};"><td>{0}</td>'.format(record["date"].strftime('%d/%m/%Y') if record["date"] else '-', trStyle),
+                '<td>{0}</td>'.format(record["num_polygons"]),
+                '<td>{0} km²</td></tr>'.format(record["area"]),
+            ]
+            if(itDate==record["date"]):
+                bodyHtml += [weekTotalHtml]
+        
+        return bodyHtml
+
     def generateReport(self):
         """
         Process the read data from publish database and generate the report.
@@ -30,38 +63,27 @@ class ReportService:
             deforestation_classes="'MINERACAO','DESMATAMENTO_VEG','DESMATAMENTO_CR'"
             degradation_classes="'CICATRIZ_DE_QUEIMADA','CS_GEOMETRICO','CS_DESORDENADO','DEGRADACAO'"
 
+            # The date of the more recent data into the database released to the public.
             lastReleaseDate = dao.getDateOfLastReleaseData()
-            currentDate = lastReleaseDate["release_date"].strftime('%d/%m/%Y')
-            nextReleaseDate = lastReleaseDate["release_date"] + timedelta(days=7)
-            nextRelease = (nextReleaseDate).strftime('%d/%m/%Y')
-            releaseDate = (lastReleaseDate["release_date"] + timedelta(days=14)).strftime('%d/%m/%Y')
+            currentDate = lastReleaseDate["date"].strftime('%d/%m/%Y')
+            nextDateOfData = lastReleaseDate["date"] + timedelta(days=1)
+
+            # The date used to release data weekly. Refers to the audit date.
+            publishDate = dao.getAuditDateOfLastReleaseData()
+            nextFriday = publishDate["date"] + timedelta(days=7)
+            nextRelease = (publishDate["date"] + timedelta(days=7)).strftime('%d/%m/%Y')
+            releaseDate = (publishDate["date"] + timedelta(days=14)).strftime('%d/%m/%Y')
 
             bodyHtml=[]
 
             # By deforestation classes
-            data = dao.getNewAlertsDayByDay(deforestation_classes)
             bodyHtml += [
                 '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:500px;">',
                 '<tr><td colspan="3" style="color:white;border-bottom:1px solid #adadad;background-color:#636363;">DESMATAMENTO - novos avisos.</td></tr>',
-                '<tr style="color:darkblue;border-bottom:1px solid gray;background-color:#e1e1e1;"><td>Data</td><td>Número de polígonos</td><td>Área medida</td></tr>'
+                '<tr style="color:darkblue;border-bottom:1px solid gray;background-color:#e1e1e1;"><td>Data da imagem</td><td>Número de polígonos</td><td>Área medida</td></tr>'
             ]
-            index=1
-            totalAreaLastWeek=0
-            for record in data:
-                trStyle="#fafafa" if (index%2) else "#f1f1f1"
-                index=index+1
-                totalAreaLastWeek+=record["area"]
-
-                bodyHtml += [
-                    '<tr style="background-color:{1};"><td>{0}</td>'.format(record["date"].strftime('%d/%m/%Y') if record["date"] else '-', trStyle),
-                    '<td>{0}</td>'.format(record["num_polygons"]),
-                    '<td>{0} km²</td></tr>'.format(record["area"]),
-                ]
-
-                if(record["date"]==nextReleaseDate):
-                    bodyHtml += [
-                        '<tr style="color:black;background-color:#e1e1e1;"><td style="border-top:1px solid gray;" colspan="2">Fechamento semanal <b>de {0} até {1}</b></td><td style="border-top:1px solid gray; colspan="1"><b>{2}</b> km²</td></tr>'.format(currentDate,nextRelease,totalAreaLastWeek),
-                    ]
+            
+            bodyHtml += self.makeBodyTable(dao, nextFriday, nextDateOfData, deforestation_classes)
 
             data = dao.getNewAlerts(deforestation_classes)
             areaTotalDeforestation=data["area"]
@@ -77,28 +99,13 @@ class ReportService:
             bodyHtml += ['</table><br><br>']
 
             # By degradation classes
-            data = dao.getNewAlertsDayByDay(degradation_classes)
             bodyHtml += [
                 '<table cellspacing="0" cellpadding="4" border="0" style="background-color:#f1f1f1;width:500px;">',
                 '<tr><td colspan="3" style="color:white;border-bottom:1px solid #adadad;background-color:#636363;">DEGRADAÇÃO - novos avisos.</td></tr>',
-                '<tr style="color:darkblue;border-bottom:1px solid gray;background-color:#e1e1e1;"><td>Data</td><td>Número de polígonos</td><td>Área medida</td></tr>'
+                '<tr style="color:darkblue;border-bottom:1px solid gray;background-color:#e1e1e1;"><td>Data da imagem</td><td>Número de polígonos</td><td>Área medida</td></tr>'
             ]
-            index=1
-            totalAreaLastWeek=0
-            for record in data:
-                trStyle="#fafafa" if (index%2) else "#f1f1f1"
-                index=index+1
-                totalAreaLastWeek+=record["area"]
-                bodyHtml += [
-                    '<tr style="background-color:{1};"><td>{0}</td>'.format(record["date"].strftime('%d/%m/%Y') if record["date"] else '-', trStyle),
-                    '<td>{0}</td>'.format(record["num_polygons"]),
-                    '<td>{0} km²</td></tr>'.format(record["area"]),
-                ]
-
-                if(record["date"]==nextReleaseDate):
-                    bodyHtml += [
-                        '<tr style="color:black;background-color:#e1e1e1;"><td style="border-top:1px solid gray;" colspan="2">Fechamento semanal <b>de {0} até {1}</b></td><td style="border-top:1px solid gray; colspan="1"><b>{2}</b> km²</td></tr>'.format(currentDate,nextRelease,totalAreaLastWeek),
-                    ]
+            
+            bodyHtml += self.makeBodyTable(dao, nextFriday, nextDateOfData, degradation_classes)
             
             data = dao.getNewAlerts(degradation_classes)
             areaTotalDegradation=data["area"]
@@ -133,8 +140,8 @@ class ReportService:
                 <body>
                 <p>
                 <h3>{0}</h3>
-                <h5>Dados liberados ao público até: {3}*</h5>
-                <h5>Em {4}* serão liberados os dados até: {5}*</h5>
+                <h5>Dados liberados ao público até: {3}</h5>
+                <h5>Em {4}* serão liberados os dados interpretados até: {5}*</h5>
                 <small><b>*</b>referente a data de auditoria</small>
                 </p>
                 {1}
