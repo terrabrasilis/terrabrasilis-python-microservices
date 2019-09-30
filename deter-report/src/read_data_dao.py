@@ -37,7 +37,7 @@ class ReadDataDao:
 
         @return dict, the following values: {num_polygons,start_date,end_date,area}
         """
-        sql = "SELECT COUNT(*) as num_polygons, MIN(date) as start_date, MAX(date) as end_date, SUM(areamunkm) as area "
+        sql = "SELECT COUNT(*) as num_polygons, MIN(date) as start_date, MAX(date) as end_date, SUM(round(areamunkm::numeric,2)) as area "
         sql += "FROM terrabrasilis.deter_table "
         sql += "WHERE date_audit > (SELECT date FROM public.deter_publish_date) "
         sql += "AND to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
@@ -54,7 +54,7 @@ class ReadDataDao:
 
         @return dict, the following values: {num_polygons,start_date,end_date,area}
         """
-        sql = "SELECT COUNT(*) as num_polygons, date, SUM(areamunkm) as area "
+        sql = "SELECT COUNT(*) as num_polygons, date, SUM(round(areamunkm::numeric,2)) as area "
         sql += "FROM terrabrasilis.deter_table "
         sql += "WHERE date_audit > (SELECT date FROM public.deter_publish_date) "
         sql += "AND to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
@@ -73,7 +73,7 @@ class ReadDataDao:
 
         @return dict, the following values: {num_polygons,start_date,end_date,area}
         """
-        sql = "SELECT COUNT(*) as num_polygons, MIN(date) as start_date, MAX(date) as end_date, SUM(areamunkm) as area "
+        sql = "SELECT COUNT(*) as num_polygons, MIN(date) as start_date, MAX(date) as end_date, SUM(round(areamunkm::numeric,2)) as area "
         sql += "FROM terrabrasilis.deter_table "
         sql += "WHERE to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
         sql += "AND to_char(date at time zone 'UTC', 'MM') = to_char(now() at time zone 'UTC', 'MM') "
@@ -106,7 +106,7 @@ class ReadDataDao:
                 'num_polygons':data[0][0],
                 'start_date':data[0][1],
                 'end_date':data[0][2],
-                'area':round(data[0][3],2)
+                'area':data[0][3]
             }
         
         return ret_data
@@ -129,7 +129,7 @@ class ReadDataDao:
                     row={
                         'num_polygons':record[0],
                         'date':record[1],
-                        'area':round(record[2],2)
+                        'area':record[2]
                     }
                     ret_data.append(row)
         

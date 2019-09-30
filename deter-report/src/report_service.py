@@ -33,8 +33,9 @@ class ReportService:
                     itDate=record["date"]
                 else:
                     break
-                    
-            weekTotalHtml='<tr style="color:black;background-color:#e1e1e1;"><td style="border-top:1px solid gray;" colspan="2">Fechamento semanal <b>de {0} até {1}</b></td><td style="border-top:1px solid gray; colspan="1"><b>{2}</b> km²</td></tr>'.format(nextDateOfData,(itDate).strftime('%d/%m/%Y'),totalAreaLastWeek)
+
+            totalAreaLastWeek=str(totalAreaLastWeek).replace('.',',')
+            weekTotalHtml='<tr style="color:black;background-color:#e1e1e1;"><td style="border-top:1px solid gray;" colspan="2">Fechamento semanal <b>de {0} até {1}</b></td><td style="border-top:1px solid gray; colspan="1"><b>{2}</b> km²</td></tr>'.format(nextDateOfData.strftime('%d/%m/%Y'),(itDate).strftime('%d/%m/%Y'),totalAreaLastWeek)
 
         index=1 # ctrl to alternate background color line
         for record in data:
@@ -43,7 +44,7 @@ class ReportService:
             bodyHtml += [
                 '<tr style="background-color:{1};"><td>{0}</td>'.format(record["date"].strftime('%d/%m/%Y') if record["date"] else '-', trStyle),
                 '<td>{0}</td>'.format(record["num_polygons"]),
-                '<td>{0} km²</td></tr>'.format(record["area"]),
+                '<td>{0} km²</td></tr>'.format(str(record["area"]).replace('.',',')),
             ]
             if(itDate==record["date"]):
                 bodyHtml += [weekTotalHtml]
@@ -93,7 +94,7 @@ class ReportService:
                     '<tr><td colspan="3" style="color:black;border-bottom:1px solid gray;background-color:#e1e1e1;">DESMATAMENTO TOTAL {0}</td></tr>'.format(intervalDeforestation),
                     '<tr><td>Todas</td>',
                     '<td>{0}</td>'.format(polTotalDeforestation),
-                    '<td>{0} km²</td></tr>'.format(areaTotalDeforestation),
+                    '<td>{0} km²</td></tr>'.format( str(areaTotalDeforestation).replace('.',',') ),
                 ]
 
             bodyHtml += ['</table><br><br>']
@@ -115,7 +116,7 @@ class ReportService:
                     '<tr><td colspan="3" style="color:black;border-bottom:1px solid gray;background-color:#e1e1e1;">DEGRADAÇÃO TOTAL {0}</td></tr>'.format(intervalDegradation),
                     '<tr><td>Todas</td>',
                     '<td>{0}</td>'.format(polTotalDegradation),
-                    '<td>{0} km²</td></tr>'.format(areaTotalDegradation),
+                    '<td>{0} km²</td></tr>'.format( str(areaTotalDegradation).replace('.',',') ),
                 ]
 
             bodyHtml += ['</table><br><br>']
