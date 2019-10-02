@@ -40,8 +40,8 @@ class ReadDataDao:
         sql = "SELECT COUNT(*) as num_polygons, MIN(date) as start_date, MAX(date) as end_date, SUM(round(areamunkm::numeric,2)) as area "
         sql += "FROM terrabrasilis.deter_table "
         sql += "WHERE date_audit > (SELECT date FROM public.deter_publish_date) "
-        sql += "AND to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
-        sql += "AND to_char(date at time zone 'UTC', 'MM') = to_char(now() at time zone 'UTC', 'MM') "
+        # sql += "AND to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
+        # sql += "AND to_char(date at time zone 'UTC', 'MM') = to_char(now() at time zone 'UTC', 'MM') "
         sql += "AND areatotalkm >= 0.0625 "
         sql += "AND uf != ('MS') "
         sql += "AND classname in ({0})".format(filter)
@@ -57,8 +57,8 @@ class ReadDataDao:
         sql = "SELECT COUNT(*) as num_polygons, date, SUM(round(areamunkm::numeric,2)) as area "
         sql += "FROM terrabrasilis.deter_table "
         sql += "WHERE date_audit > (SELECT date FROM public.deter_publish_date) "
-        sql += "AND to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
-        sql += "AND to_char(date at time zone 'UTC', 'MM') = to_char(now() at time zone 'UTC', 'MM') "
+        # sql += "AND to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
+        # sql += "AND to_char(date at time zone 'UTC', 'MM') = to_char(now() at time zone 'UTC', 'MM') "
         sql += "AND areatotalkm >= 0.0625 "
         sql += "AND uf != ('MS') "
         sql += "AND classname in ({0}) ".format(filter)

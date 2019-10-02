@@ -31,8 +31,6 @@ class ReportService:
                 if(record["date"]<nextFriday):
                     totalAreaLastWeek+=record["area"]
                     itDate=record["date"]
-                else:
-                    break
 
             totalAreaLastWeek=str(totalAreaLastWeek).replace('.',',')
             weekTotalHtml='<tr style="color:black;background-color:#e1e1e1;"><td style="border-top:1px solid gray;" colspan="2">Fechamento semanal <b>de {0} até {1}</b></td><td style="border-top:1px solid gray; colspan="1"><b>{2}</b> km²</td></tr>'.format(nextDateOfData.strftime('%d/%m/%Y'),(itDate).strftime('%d/%m/%Y'),totalAreaLastWeek)
