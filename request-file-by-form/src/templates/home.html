@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>First Flask App</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<script>
+function prepareDownload() {
+    var email= $('#email').val();
+    var user_name= $('#user_name').val();
+    var institution= $('#institution').val();
+    $.ajax({
+        url: "/prepare/download",
+        type: "POST",
+        data: {email:email,user_name:user_name,institution:institution}
+    }).done(function(response) {
+        $(".show-data").html('');
+        var html="<br><br><br><p>Baixe via link<p>";
+        response=response.result;
+        $.each(response,function(key,val){
+            html+="<a href='"+val+"'>Arquivo</a>";
+        });
+        html +="<br>";
+        $(".show-data").append(html);
+    });
+};
+  </script>
+<body>
+    <p>
+        Solicitar link para download<br><br>
+            E-mail: <input type="text" id="email" name="email"><br><br>
+            Nome: <input type="text" id="user_name" name="user_name"><br><br>
+            Instituição: <input type="text" id="institution" name="institution"><br><br>
+            <button id="clicked" onclick="prepareDownload()">Enviar</button>
+        </p>
+    <div class="show-data" >
+    </div>
+</body>
+</html>
