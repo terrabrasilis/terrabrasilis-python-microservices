@@ -13,11 +13,16 @@ api = Api(app)
 class DownloadControl(Resource):
      def get(self, uuid):
         file_path = os.path.realpath(os.path.dirname(__file__) + "/" + FILE_PATH)
+        client_ip = ""
+        if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+            client_ip=request.environ['REMOTE_ADDR']
+        else:
+            client_ip=request.environ['HTTP_X_FORWARDED_FOR'] # if behind a proxy
         try:
             db = UuidTableDao()
             if db.confirmUUID(uuid)==True:
                 db.increaseDownloadByUUID(uuid)
-                db.storeClientIP(uuid,request.remote_addr)
+                db.storeClientIP(uuid,client_ip)
             else:
                 return 'Invalid identifier', 404
         except Exception as error:
