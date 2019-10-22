@@ -79,13 +79,20 @@ class PsqlDB:
             # commit the changes
             self.conn.rollback()
 
-    def execQuery(self, query):
+    def execQuery(self, query, isInsert=None):
         try:
             
             if self.cur is None:
                 raise ConnectionError('Missing cursor:', 'Has no valid database cursor ({0})'.format(query))
             # execute a statement
             self.cur.execute(query)
+
+            if isInsert:
+                data=self.cur.fetchone()
+                if(data):
+                    return data[0]
+                else:
+                    return None
 
         except (Exception, psycopg2.DatabaseError) as error:
             self.rollback()
