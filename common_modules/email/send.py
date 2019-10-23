@@ -24,8 +24,8 @@ class SenderMail(object):
             self.user = os.getenv("SMTP_GOOGLE_MAIL_USER_FILE", "user")
             self.password = os.getenv("SMTP_GOOGLE_MAIL_PASS_FILE", "pass")
         else:
-            self.user = os.getenv("SMTP_INPE_MAIL_USER_FILE", "user")
-            self.password = os.getenv("SMTP_INPE_MAIL_PASS_FILE", "pass")
+            self.user = os.getenv("SMTP_INPE_MAIL_USER_FILE", cfg_data['mail_user'])
+            self.password = os.getenv("SMTP_INPE_MAIL_PASS_FILE", cfg_data['mail_pass'])
 
         if os.path.exists(self.user):
             self.user = open(self.user, 'r').read()
@@ -38,7 +38,7 @@ class SenderMail(object):
         if os.path.exists(self.to):
             self.to = open(self.to, 'r').read()
         # try get alias to email from
-        email_alias = os.getenv("MAIL_FROM_ALIAS")
+        email_alias = os.getenv("MAIL_FROM_ALIAS", "terrabrasilis@dpi.inpe.br")
         if email_alias:
             self.email_from = email_alias
 
@@ -52,6 +52,7 @@ class SenderMail(object):
             self.server = server
         except Exception as error:
             print('Failure on sent the email.')
+            raise Exception('Not connected to SMTP server.')
 
     def setEmailTo(self, email_to):
         self.to = email_to
@@ -73,7 +74,10 @@ class SenderMail(object):
             bodyHtml = MIMEText(bodyHtml.encode('utf-8'), "html", "utf-8")
             msg.attach(bodyHtml)
 
-        self.server.sendmail(
-            self.email_from,
-            self.to.split(','),
-            msg.as_string())
+        if self.server:
+            self.server.sendmail(
+                self.email_from,
+                self.to.split(','),
+                msg.as_string())
+        else:
+            print('Not connected to SMTP server.')
