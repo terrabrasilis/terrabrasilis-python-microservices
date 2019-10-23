@@ -6,6 +6,7 @@
 #   -p 7000:7000 --env POSTGRES_PASS_FILE=<secret_password> \
 #   --env SMTP_INPE_MAIL_USER_FILE=<email_from> \
 #   --env SMTP_INPE_MAIL_PASS_FILE=<secret_password> \
+#   --env MAIL_FROM_ALIAS=<email_alias_from> \
 #   -v $PWD/request-file-by-form/src/config:/usr/local/data/config \
 #   terrabrasilis/request-file-by-form:v0.1
 # 
