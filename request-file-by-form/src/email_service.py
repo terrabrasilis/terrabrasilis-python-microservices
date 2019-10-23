@@ -12,9 +12,9 @@ class EmailService:
         self.is_docker_env = os.getenv("DOCKER_ENV", False)
         # If the environment is docker then use the absolute path to write log file
         if self.is_docker_env:
-            self.LOG_FILE='/usr/local/data/report_service.log'
+            self.LOG_FILE='/usr/local/data/email_service.log'
         else:
-            self.LOG_FILE=os.path.realpath(os.path.dirname(__file__)) + '/report_service.log'
+            self.LOG_FILE=os.path.realpath(os.path.dirname(__file__)) + '/email_service.log'
 
     def sendLinkByEmail(self, link, email):
         """
