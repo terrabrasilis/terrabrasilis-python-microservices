@@ -31,11 +31,16 @@ class SenderMail(object):
             self.user = open(self.user, 'r').read()
         if os.path.exists(self.password):
             self.password = open(self.password, 'r').read()
-
+        
+        self.email_from = self.user
+        
         self.to = os.getenv("MAIL_TO", "to")
         if os.path.exists(self.to):
             self.to = open(self.to, 'r').read()
-        self.email_from = self.user
+        # try get alias to email from
+        email_alias = os.getenv("MAIL_FROM_ALIAS")
+        if email_alias:
+            self.email_from = email_alias
 
         # connection
         try:
