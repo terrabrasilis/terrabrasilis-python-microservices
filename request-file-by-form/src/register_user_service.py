@@ -4,12 +4,12 @@ from user_table_dao import UserTableDao
 from email_service import EmailService
 
 SERVER_IP='0.0.0.0'
-DOWNLOAD_URL='http://localhost:8000/files/bycode/'
+DOWNLOAD_URL='http://localhost:8000/counter/download/bycode/'
 # get env var setted in Dockerfile
 is_docker_env = os.getenv("DOCKER_ENV", False)
 # If the environment is docker then use the absolute path to write log file
 if is_docker_env:
-    DOWNLOAD_URL='http://terrabrasilis.dpi.inpe.br/files/bycode/'
+    DOWNLOAD_URL='http://terrabrasilis.dpi.inpe.br/counter/download/bycode/'
     
 app = Flask(__name__)
 
@@ -17,7 +17,7 @@ app = Flask(__name__)
 def home():
     return render_template('home.html')
 
-@app.route('/prepare/download', methods=['POST'])
+@app.route('/registry', methods=['POST'])
 def store_form_post():
     link=None
     code=None

@@ -24,7 +24,7 @@ class EmailService:
         @param email, target email of the user.
         """
 
-        bodyHeader='Use o link abaixo para baixar os dados.'
+        bodyHeader='Use este link para baixar os dados.'
         bodyFooter='Att. Equipe do projeto PRODES.'
 
         try:
@@ -52,7 +52,7 @@ class EmailService:
             </html>
             """.format(bodyHeader, bodyHtml, bodyFooter)
         try:
-            ref_date=datetime.today().strftime('%d/%m/%Y %H:%M:%S')
+            ref_date=datetime.today().strftime('%d/%m/%Y')
             subject='[PRODES] - Link para download de dados, solicitação em {0}.'.format(ref_date)
             mail = SenderMail(pathToConfigFile)
             mail.setEmailTo(email)
