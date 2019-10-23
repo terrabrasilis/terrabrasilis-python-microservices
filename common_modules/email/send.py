@@ -20,12 +20,18 @@ class SenderMail(object):
         cfg = ConfigLoader(relative_path, filename, section)
         cfg_data = cfg.get()
         # get user and password for email account from secrets
-        self.user = os.getenv("SMTP_GOOGLE_MAIL_USER_FILE", "user")
+        if(cfg_data['servertype'] and cfg_data['servertype']=="google"):
+            self.user = os.getenv("SMTP_GOOGLE_MAIL_USER_FILE", "user")
+            self.password = os.getenv("SMTP_GOOGLE_MAIL_PASS_FILE", "pass")
+        else:
+            self.user = os.getenv("SMTP_INPE_MAIL_USER_FILE", "user")
+            self.password = os.getenv("SMTP_INPE_MAIL_PASS_FILE", "pass")
+
         if os.path.exists(self.user):
             self.user = open(self.user, 'r').read()
-        self.password = os.getenv("SMTP_GOOGLE_MAIL_PASS_FILE", "pass")
         if os.path.exists(self.password):
             self.password = open(self.password, 'r').read()
+
         self.to = os.getenv("MAIL_TO", "to")
         if os.path.exists(self.to):
             self.to = open(self.to, 'r').read()
@@ -41,6 +47,9 @@ class SenderMail(object):
             self.server = server
         except Exception as error:
             print('Failure on sent the email.')
+
+    def setEmailTo(self, email_to):
+        self.to = email_to
 
     def send(self, subject, bodyText, bodyHtml=None):
         """
