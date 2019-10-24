@@ -19,13 +19,20 @@ class SenderMail(object):
         """
         cfg = ConfigLoader(relative_path, filename, section)
         cfg_data = cfg.get()
+        mail_user = "user"
+        mail_pass = "pass"
         # get user and password for email account from secrets
         if(cfg_data['servertype'] and cfg_data['servertype']=="google"):
-            self.user = os.getenv("SMTP_GOOGLE_MAIL_USER_FILE", "user")
-            self.password = os.getenv("SMTP_GOOGLE_MAIL_PASS_FILE", "pass")
+            self.user = os.getenv("SMTP_GOOGLE_MAIL_USER_FILE", mail_user)
+            self.password = os.getenv("SMTP_GOOGLE_MAIL_PASS_FILE", mail_pass)
         else:
-            self.user = os.getenv("SMTP_INPE_MAIL_USER_FILE", cfg_data['mail_user'])
-            self.password = os.getenv("SMTP_INPE_MAIL_PASS_FILE", cfg_data['mail_pass'])
+            if 'mail_user' in cfg_data.keys():
+                mail_user = cfg_data['mail_user']
+            if 'mail_pass' in cfg_data.keys():
+                mail_pass = cfg_data['mail_pass']
+
+            self.user = os.getenv("SMTP_INPE_MAIL_USER_FILE", mail_user)
+            self.password = os.getenv("SMTP_INPE_MAIL_PASS_FILE", mail_pass)
 
         if os.path.exists(self.user):
             self.user = open(self.user, 'r').read()
