@@ -1,9 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>First Flask App</title>
+    <title>TerraBrasilis - controle de download</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="icon" href="http://terrabrasilis.dpi.inpe.br/app/dashboard/alerts/legal/amazon/daily/img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+    <!-- Google Material Font -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
     <script>
         function prepareDownload() {
             var email= $('#email').val();
@@ -14,26 +21,183 @@
                 type: "POST",
                 data: {email:email,user_name:user_name,institution:institution}
             }).done(function(response) {
-                $(".show-data").html('');
-                var html="<br/><p>Use este link para baixar os dados.</p>";
-                response=response.result;
-                $.each(response,function(key,val){
-                    html+="<a href='"+val+"'>Arquivo</a>";
-                });
-                html +="<br/><small>Também eviamos o link para o seu email.</small><br/>";
-                $(".show-data").append(html);
+                var html="";
+                if(response.result.status===1){
+                  html="<div class='card bg-transparent mt-3'><div class='card-body border-info text-center'><h6 class='card-title bg-transparent border-info'>Enviamos ao seu e-mail um link para baixar os dados.</h6></div></div></div>";
+                }else{
+                  html="<div class='card-warning bg-transparent mt-3'><div class='card-body border-info text-center'><h6 class='card-title bg-transparent border-info'>Falhou ao registrar o seu pedido.</h6></div></div></div>";
+                }
+                $(".show-data").html(html);
             });
         };
     </script>
 </head>
 <body>
-    <p>
-        Solicitar link para download<br><br>
-        E-mail: <input type="text" id="email" name="email"><br><br>
-        Nome: <input type="text" id="user_name" name="user_name"><br><br>
-        Instituição: <input type="text" id="institution" name="institution"><br><br>
-        <button id="clicked" onclick="prepareDownload()">Enviar</button>
-    </p>
-    <div class="show-data"></div>
+<div class="content">
+  <div class="container-box-cad">
+    <div class="box-cad">
+      <div class="box-cad-form">
+        <span class="box-cad-form-title"> Solicitar link para download </span>
+        <div class="wrap-box-input"> 
+		      <i class="material-icons">email</i>
+          <input class="box-input" type="email" id="email" name="email" placeholder="E-mail">
+        </div>
+        <div class="wrap-box-input"> <i class="material-icons">person</i>
+          <input class="box-input" type="text" id="user_name" name="user_name" placeholder="Nome">
+        </div>
+        <div class="wrap-box-input"> 
+		      <i class="material-icons">location_city</i>
+          <input class="box-input" type="text" id="institution" name="institution" placeholder="Instituição">
+        </div>
+        <div class="container-box-cad-form-btn">
+          <button class="box-cad-form-btn" id="clicked" onclick="prepareDownload()"> Enviar </button>
+        </div>
+		    <div class="show-data"></div>
+    </div>
+  </div>
+</div>
+
+<!-- estilo -->
+<style type="text/css">
+@import "https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700";
+@import "http://fonts.googleapis.com/css?family=Roboto:300,400,500,700";
+body, html {height: 100%;font-family: 'Poppins', sans-serif;}
+input {outline: none;border: none;}
+input::-webkit-input-placeholder { color: #fff; opacity: 0.4;}
+input:-moz-placeholder { color: #fff; opacity: 0.4;}
+input::-moz-placeholder { color: #fff; opacity: 0.4;}
+input:-ms-input-placeholder { color: #fff; opacity: 0.4;}
+button {outline: none !important; border: none; background: transparent;}
+button:hover {cursor: pointer;}
+
+.card {
+  background-color: darkslategray !important;
+  border-radius: 5px;
+  color: white;
+}
+.card-warning {
+    background-color: #f3f057 !important;
+    border-radius: 5px;
+    color: #595959;
+}
+.card-text {font-size: 12px; margin-top: 10px;}
+
+/** icon */
+.box-cad .material-icons {position: absolute; top: 10px; color:#fff; } 
+
+.container-box-cad {
+  width: 100%;  
+  min-height: 80vh;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  padding: 15px; 
+	
+}
+
+.box-cad {
+  width: 400px;
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 55px; 
+  background-image: -moz-linear-gradient( -90deg, rgb(0,182,194) 0%, rgb(57,191,94) 100%);
+  background-image: -webkit-linear-gradient( -90deg, rgb(0,182,194) 0%, rgb(57,191,94) 100%);
+  background-image: -ms-linear-gradient( -90deg, rgb(0,182,194) 0%, rgb(57,191,94) 100%);
+	box-shadow: 0 .125rem .25rem rgba(0,0,0,.4)!important;
+  
+}
+
+.box-cad-form {width: 100%;}
+
+.box-cad-form-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 24px;
+  color: #fff;
+  line-height: 1.2;
+  text-align: center;
+  padding-bottom: 34px;
+  padding-top: 10px;
+  display: block;
+}
+
+
+.wrap-box-input {
+  width: 100%;
+  position: relative;
+  border-bottom: 2px solid rgba(255,255,255,0.24);
+  margin-bottom: 15px;
+}
+
+.box-input {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  color: #fff;
+  line-height: 1.2;
+  display: block;
+  width: 100%;
+  height: 45px;
+  background: transparent;
+  padding: 0 5px 0 38px;
+}
+
+/*------------------------------------------------------------------
+[ Button ]*/
+.container-box-cad-form-btn {
+  width: 100%;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+
+}
+
+.box-cad-form-btn {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  color: #555555;
+  line-height: 1.2;
+  margin-top: 10px; 
+  padding: 0 20px;
+  min-width: 120px;
+  height: 50px;
+  border-radius: 25px;
+background-color: #01758e;
+  position: relative;
+  z-index: 1;
+  -webkit-transition: all 0.4s;
+  -o-transition: all 0.4s;
+  -moz-transition: all 0.4s;
+  transition: all 0.4s;
+}
+
+.box-cad-form-btn::before {
+  content: "";
+  display: block;
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  border-radius: 25px;
+  background-color: #fff;
+  top: 0;
+  left: 0;
+  opacity: 1;
+  -webkit-transition: all 0.4s;
+  -o-transition: all 0.4s;
+  -moz-transition: all 0.4s;
+  transition: all 0.4s;
+}
+
+.box-cad-form-btn:hover {color: #fff;}
+.box-cad-form-btn:hover:before {opacity: 0;}
+</style>
 </body>
 </html>
