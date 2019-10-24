@@ -74,6 +74,7 @@ class SenderMail(object):
         """
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
+        msg['From'] = "TerraBrasilis <{0}>".format(self.email_from)
         msg["To"] = self.to
         bodyText = MIMEText(bodyText.encode('utf-8') ,"plain", "utf-8")
         msg.attach(bodyText)

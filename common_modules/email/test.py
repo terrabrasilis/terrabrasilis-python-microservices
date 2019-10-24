@@ -27,7 +27,7 @@ bodyHtml = """\
 try:
     subject='[PRODES] - Link para download de dados.'
     mail = SenderMail(pathToConfigFile)
-    mail.setEmailTo('andre.carvalho@inpe.br')
+    mail.setEmailTo('afacarvalho@yahoo.com.br')
     mail.send(subject, bodyHeader, bodyHtml)
 except BaseException as error:
     print(str(error))
