@@ -24,7 +24,7 @@ class EmailService:
         @param email, target email of the user.
         """
 
-        bodyHeader='Use este link para baixar os dados.'
+        bodyHeader='Use este link para baixar os dados PRODES 2019, pré estimativa.'
         bodyFooter='Att. Equipe do projeto PRODES.'
 
         try:
