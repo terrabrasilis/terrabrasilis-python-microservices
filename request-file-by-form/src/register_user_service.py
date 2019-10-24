@@ -26,22 +26,26 @@ def store_form_post():
     user_name = request.form['user_name']
     institution = request.form['institution']
 
-    db = UserTableDao()
-    user=db.storeClient(user_name,email,institution)
-    if(user["user_id"]):
-        code=db.generateUUID(user["user_id"])
-    else:
-        code=db.getUUID(email)
+    try:
+        db = UserTableDao()
+        user=db.storeClient(user_name,email,institution)
+        if(user["user_id"]):
+            code=db.generateUUID(user["user_id"])
+        else:
+            code=db.getUUID(email)
 
-    if(code["uuid"]):
-        link=DOWNLOAD_URL+code["uuid"]
-        mail=EmailService()
-        mail.sendLinkByEmail(link, email)
+        if(code["uuid"]):
+            link=DOWNLOAD_URL+code["uuid"]
+            mail=EmailService()
+            mail.sendLinkByEmail(link, email)
 
-    result = {
-        "output": link
-    }
-    result = {str(key): value for key, value in result.items()}
+        result = { "status": 0}
+        if link:
+            result = { "status": 1}
+        result = {str(key): value for key, value in result.items()}
+    except Exception as error:
+        result = { "status": 0,"error":str(error)}
+        result = {str(key): value for key, value in result.items()}
     return jsonify(result=result)
 
 if __name__ == '__main__':

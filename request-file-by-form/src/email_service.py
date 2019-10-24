@@ -32,6 +32,7 @@ class EmailService:
             self.__sendMail(bodyHeader, bodyFooter, bodyHtml, email)
         except BaseException as error:
             self.__writeLog(error)
+            raise Exception('Failure on send the e-mail.')
 
     def __sendMail(self, bodyHeader, bodyFooter, bodyHtml, email):
 
@@ -59,6 +60,7 @@ class EmailService:
             mail.send(subject, bodyHeader, bodyHtml)
         except BaseException as error:
             self.__writeLog(error)
+            raise Exception('Failure on send the e-mail.')
 
     def __writeLog(self, error):
 
