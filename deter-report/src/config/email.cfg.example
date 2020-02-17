@@ -1,3 +1,4 @@
 [email]
+servertype: google
 server: smtp.domain.com
 port: 587
