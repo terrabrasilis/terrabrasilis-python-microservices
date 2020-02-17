@@ -22,7 +22,7 @@ class SenderMail(object):
         mail_user = "user"
         mail_pass = "pass"
         # get user and password for email account from secrets
-        if(cfg_data['servertype'] and cfg_data['servertype']=="google"):
+        if('servertype' in cfg_data.keys() and cfg_data['servertype']=="google"):
             self.user = os.getenv("SMTP_GOOGLE_MAIL_USER_FILE", mail_user)
             self.password = os.getenv("SMTP_GOOGLE_MAIL_PASS_FILE", mail_pass)
         else:
