@@ -1,5 +1,5 @@
 # To build image for this dockerfile use this command:
-#   docker build -t terrabrasilis/deter-report:v0.5 -f deter-report-env/Dockerfile .
+#   docker build --no-cache -t terrabrasilis/deter-report:v0.5 -f deter-report-env/Dockerfile .
 #
 # To run without compose but with shell terminal use this command:
 #   docker run --rm --name terrabrasilis_deter_report -v $PWD/deter-report/data:/usr/local/data -it terrabrasilis/deter-report:v0.5 sh
