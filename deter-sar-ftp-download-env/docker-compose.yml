@@ -1,0 +1,15 @@
+# To run this compose file
+# docker-compose -f deter-sar-ftp-download-env/docker-compose.yml up
+#
+# To run in detached mode
+# docker-compose -f deter-sar-ftp-download-env/docker-compose.yml up -d
+#
+# Warning: You need to have one directory in /tmp/deter-ftp-download
+
+version: "3.2"
+
+services:
+  deter-ftp-download:
+    image: terrabrasilis/deter-sar-ftp-download:v0.1.0
+    volumes: 
+      - /tmp/deter-ftp-download:/usr/local/data
