@@ -1,18 +1,9 @@
-## Cron job DETER - CRA to SJC
+## Cron job DETER - SAR
 
-Service to download the backup files of terrabrasilis.deter_table from FTP, drop the old table and import into local database.
-For eventual use when the DETER server in Belém is off-line.
+This service is a scheduled task to download SAR data from FTP and import it into a database.
 
-## Develop
+The strategy adopted here is to search for a file called detersar.txt every ten minutes in a specific location on an FTP. If such a file exists, it will be downloaded and its contents read. We expect a name of the compressed shapefile in ZIP format and, if that file exists, we download, unzip and import it into a database table.
 
-To create the virtual env for local debug:
+The text file is a trigger and point to the desired file.
 
-```sh
-virtualenv --python=/usr/bin/python3 env
-
-# to activate
-source env/bin/activate
-
-# to deactivate
-deactivate
-```
+After process the download of shapefile.zip, the text file is deleted.
