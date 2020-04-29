@@ -13,8 +13,11 @@ export PGPASSWORD=`cat /run/secrets/postgres.pass.forest.monitor`
 PG_BIN="/usr/bin"
 PG_CON="-d $database -p $port -h $host"
 
-SQL="DROP TABLE IF EXISTS public.deter_sar_1ha"
-$PG_BIN/psql $PG_CON -t -c "$SQL"
+# Define SQL to log the success operation. Tips to select datetime as a string (to_char(timezone('America/Sao_Paulo',imported_at),'YYYY-MM-DD HH24:MI:SS'))
+LOG_IMPORT="INSERT INTO public.deter_sar_import_log(imported_at, filename) VALUES (timezone('America/Sao_Paulo',now()), '$SHP_NAME')"
+
+#SQL="DROP TABLE IF EXISTS public.deter_sar_1ha"
+#$PG_BIN/psql $PG_CON -t -c "$SQL"
 
 #PROJ4=`gdalsrsinfo -o proj4 $SHP_NAME_AND_DIR`
 # find the EPSG code to reproject
@@ -24,15 +27,16 @@ $PG_BIN/psql $PG_CON -t -c "$SQL"
 # default srid
 EPSG=4326
 # Options to New table mode
-SHP2PGSQL_OPTIONS="-c -s $EPSG:4326 -W 'LATIN1' -g geometries"
+#SHP2PGSQL_OPTIONS="-c -s $EPSG:4326 -W 'LATIN1' -g geometries"
 # Options to Append mode
-#SHP2PGSQL_OPTIONS="-a -s $EPSG:4326 -W 'LATIN1' -g geometries"
+SHP2PGSQL_OPTIONS="-a -s $EPSG:4326 -W 'LATIN1' -g geometries"
 
 # import shapefiles
 if $PG_BIN/shp2pgsql $SHP2PGSQL_OPTIONS $BASE_DIR"/"$SHP_NAME $OUTPUT_TABLE | $PG_BIN/psql $PG_CON
 then
     echo "$DATE - Import ($SHP_NAME) ... OK" >> $BASE_DIR"/log/import-shapefile.log"
     rm $BASE_DIR"/shpname.txt"
+    $PG_BIN/psql $PG_CON -t -c "$LOG_IMPORT"
 else
     echo "$DATE - Import ($SHP_NAME) ... FAIL" >> $BASE_DIR"/log/import-shapefile.log"
 fi
