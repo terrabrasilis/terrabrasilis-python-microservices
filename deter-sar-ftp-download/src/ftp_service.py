@@ -20,33 +20,26 @@ sys.path.insert(0, os.path.realpath( os.path.realpath(os.path.dirname(__file__))
 import logging
 import ftplib
 import zipfile
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from common_modules.configuration.src.common_config import ConfigLoader
+from log_table_dao import LogTableDao
 
 class FtpService:
 
-    def __init__(self):
+    def __init__(self, logging):
         """
         Constructor
         """
         self.docker_env = os.getenv("DOCKER_ENV", False)
+        self.logging=logging
 
-        realLogPath = '.'
-        # if in production mode
-        if self.docker_env:
-            realLogPath = '/usr/local/data/log'
-        else:
-            realLogPath = os.path.abspath(os.path.dirname(__file__) + '/')
+        relative_path = os.path.abspath(os.path.dirname(__file__) + '/config') + "/"
 
-        logdatetime = datetime.now().strftime('%d_%m_%Y_%H_%M')
-        logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s',
-                    filename= realLogPath + '/deter-sar-download-' + logdatetime + '.log',
-                    datefmt='%d-%m-%Y %H:%M:%S',
-                    filemode='w',
-                    level=logging.DEBUG)
-        
-        relative_path = os.path.abspath(os.path.dirname(__file__) + '/config') + "/"     
-        self.__loadConfigurations(relative_path)
+        try:
+            self.__loadConfigurations(relative_path)
+        except Exception as error:
+            self.__log(repr(error))
+            raise error
 
     """
     Configurations loading
@@ -54,23 +47,22 @@ class FtpService:
     def __loadConfigurations(self, relative_path):
         try:      
             section = 'developer'
-            absolute_path = ''
             if self.docker_env:
                 section = 'production'
-                absolute_path = '/usr/local/data/config/'
 
-            inputcfg = ConfigLoader(relative_path, 'ftp-credentials.cfg','ftp', absolute_path)
+            # Default path to config files is /usr/local/data/config/ when runs in production mode
+            inputcfg = ConfigLoader(relative_path, 'ftp-credentials.cfg','ftp')
             self.input_cfg = inputcfg.get()
-            pathcfg = ConfigLoader(relative_path, 'ftp-paths.cfg', section, absolute_path)
+            pathcfg = ConfigLoader(relative_path, 'ftp-paths.cfg', section)
             self.path_cfg = pathcfg.get()
 
-            self.ftp_user = os.getenv("FTP_USER", "/tmp/deter-ftp-download/ftp.dpi.user")
+            self.ftp_user = os.getenv("FTP_USER", "/tmp/deter-ftp-download/user.ftp.dpi.inpe.br")
             if self.ftp_user and os.path.isfile(self.ftp_user):
                 self.ftp_user = open(self.ftp_user).read()
             else:
                 raise Exception('Failure when reading env FTP_USER.')
 
-            self.ftp_pass = os.getenv("FTP_PASS", "/tmp/deter-ftp-download/ftp.dpi.pass")
+            self.ftp_pass = os.getenv("FTP_PASS", "/tmp/deter-ftp-download/pass.ftp.dpi.inpe.br")
             if self.ftp_pass and os.path.isfile(self.ftp_pass):
                 self.ftp_pass = open(self.ftp_pass).read()
             else:
@@ -82,8 +74,7 @@ class FtpService:
             self.txtFileName = self.path_cfg["txt_file_name"]
 
         except Exception as error:
-            self.__log(repr(error))
-            self.__log("Failure when loading initial configurations.")
+            raise error
 
     def tryLoadFilesFronFtp(self, removeLocalFiles=False):
         """
@@ -97,13 +88,38 @@ class FtpService:
         # download text file
         self.download(self.txtFileName, True)
         zipFileName=self.readFileContent(self.txtFileName)
-        if(zipFileName):
-            self.download(zipFileName)
-            self.unzipShape(zipFileName)
-            self.setShpName(os.path.splitext(zipFileName)[0])
-            if(removeLocalFiles):
-                self.removeLocalFile(self.txtFileName)
-                self.removeLocalFile(zipFileName)
+        if(not zipFileName):
+            self.__log("The detersar.txt file is empty.")
+        else:
+            if(not self.hasBeenImported(zipFileName)):
+                self.download(zipFileName)
+                self.unzipShape(zipFileName)
+                self.setShpName(os.path.splitext(zipFileName)[0])
+                if(removeLocalFiles):
+                    self.removeLocalFile(self.txtFileName)
+                    self.removeLocalFile(zipFileName)
+            else:
+                self.__log("This file has been imported before. ({0})".format(zipFileName))
+
+    def hasBeenImported(self, fileName):
+        """
+        Check if file has been imported.
+        @return boolean, True if filename is in log data table or False otherwise.
+        """
+        code=None
+
+        try:
+            db = LogTableDao()
+            log=db.getLogID(fileName)
+
+            if(log and log["id"]):
+                code=True
+
+        except Exception as error:
+            self.__log("Failure when read LogID from database.")
+            self.__log(repr(error))
+        
+        return code
 
     def setShpName(self, shpName):
         myfile = open(self.downloadTo+"/shpname.txt", 'w')
@@ -169,7 +185,7 @@ class FtpService:
             if os.path.isfile(self.downloadTo+"/"+fileName):
                 os.remove(self.downloadTo+"/"+fileName)
             self.__log(repr(error))
-            self.__log("Failure on download process...")
+            self.__log("Failure on download file {0}.".format(fileName))
 
     def __log(self, value):
         """
@@ -177,4 +193,4 @@ class FtpService:
         @param value The message to write into log file.
         """
         time = format(datetime.today().strftime('%d-%m-%Y %H:%M:%S.%f'))   
-        logging.debug("{0} - {1}".format(time, value))
+        self.logging.debug("{0} - {1}".format(time, value))
