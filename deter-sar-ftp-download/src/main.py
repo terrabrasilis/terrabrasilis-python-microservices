@@ -1,6 +1,6 @@
 import os, sys
 from ftp_service import FtpService
-from datetime import date, datetime, timedelta
+from datetime import datetime
 import logging
 
 docker_env = os.getenv("DOCKER_ENV", False)
@@ -12,17 +12,21 @@ if docker_env:
 else:
     realLogPath = os.path.abspath(os.path.dirname(__file__) + '/')
 
-logdatetime = datetime.now().strftime('%d_%m_%Y_%H_%M')
+logdatetime = datetime.now().strftime('%d_%m_%Y')
 logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s',
                     filename= realLogPath + '/deter-sar-download-' + logdatetime + '.log',
                     datefmt='%d-%m-%Y %H:%M:%S',
-                    filemode='w',
+                    filemode='a+',
                     level=logging.DEBUG)
 
-logging.info("Start proccess at {0}".format(datetime.today().strftime('%d-%m-%Y %H:%M:%S')))
+logging.info("Starting process at {0}".format(datetime.today().strftime('%d-%m-%Y %H:%M:%S')))
 
-# to download deter SAR amazon shapefile.
-ftpService = FtpService()
-ftpService.tryLoadFilesFronFtp(True)
+try:
+    # to download deter SAR amazon shapefile.
+    ftpService = FtpService(logging)
+    ftpService.tryLoadFilesFronFtp(True)
+except Exception as error:
+    logging.critical("Abnormal end of process at {0}".format(datetime.today().strftime('%d-%m-%Y %H:%M:%S')))
+    os._exit(999)
 
-logging.info("End proccess at {0}".format(datetime.today().strftime('%d-%m-%Y %H:%M:%S')))
+logging.info("Ended process at {0}".format(datetime.today().strftime('%d-%m-%Y %H:%M:%S')))
