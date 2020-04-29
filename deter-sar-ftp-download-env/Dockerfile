@@ -61,7 +61,8 @@ ENV INSTALL_PATH /usr/local
 RUN mkdir $INSTALL_PATH/common_modules
 COPY common_modules/ $INSTALL_PATH/common_modules/
 # Install Python requirements
-RUN pip3 install -r $INSTALL_PATH/common_modules/configuration/config/requirements.txt
+RUN pip3 install -r $INSTALL_PATH/common_modules/configuration/config/requirements.txt \
+&& pip3 install -r $INSTALL_PATH/common_modules/postgresql/config/requirements.txt
 # END COMMON MODULES INSTALATION
 # ------------------------------------------------------
 
@@ -86,10 +87,7 @@ RUN chmod +x $INSTALL_PATH/*.sh \
 # for schedule to download from ftp
 ADD deter-sar-ftp-download-env/ftp-schedule.cron /etc/cron.d/ftp-schedule-cron
 RUN chmod 0644 /etc/cron.d/ftp-schedule-cron \
-    && crontab /etc/cron.d/ftp-schedule-cron \
-    && echo "#!/bin/bash" > /usr/local/test.sh \
-    && echo "echo 'test...' >> /usr/local/data/test.txt" >> /usr/local/test.sh \
-    && chmod +x /usr/local/test.sh
+    && crontab /etc/cron.d/ftp-schedule-cron 
 
 # to select production configuration
 ENV DOCKER_ENV True
@@ -98,5 +96,4 @@ VOLUME ["/usr/local/data"]
 
 WORKDIR $INSTALL_PATH
 
-#CMD cron -f
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
