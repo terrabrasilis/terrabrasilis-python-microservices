@@ -94,8 +94,6 @@ class IntersectionDao:
         """
         Drop intermediary tables from the database.
 
-        The format to parameter table_identify is a dictionary like this: {'path':value,'row':value,'date':value}
-
         No return value but in error raise a DatabaseError exception.
         Warning: This method opens connection, run the process and close connection.
         """
@@ -230,7 +228,7 @@ class IntersectionDao:
         sql += "alerts.cell_oid, "
         sql += "alerts.class_name, "
         sql += "alerts.quadrant, "
-        sql += "( alerts.path || '/' || alerts.row) as path_row, "
+        sql += "alerts.path_row, "
         sql += "alerts.view_date, "
         sql += "alerts.created_date::date as created_date, "
         sql += "alerts.sensor, "
