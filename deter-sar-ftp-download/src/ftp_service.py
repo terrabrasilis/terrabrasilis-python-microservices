@@ -94,6 +94,7 @@ class FtpService:
             if(not self.hasBeenImported(zipFileName)):
                 self.download(zipFileName)
                 self.unzipShape(zipFileName)
+                # remove the extension of file name to insert only name on control table.
                 self.setShpName(os.path.splitext(zipFileName)[0])
                 if(removeLocalFiles):
                     self.removeLocalFile(self.txtFileName)
