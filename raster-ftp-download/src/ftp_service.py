@@ -69,6 +69,7 @@ class FtpService:
         self.host = self.input_cfg["host"]
         self.user = self.input_cfg["user"]
         self.password = self.input_cfg["password"]
+        self.ftpInputDir = self.input_cfg["ftpinputdir"]
         self.downloadTo = os.path.realpath(self.path_cfg["download"])
 
         downloadFolder = self.downloadTo
@@ -77,7 +78,7 @@ class FtpService:
         ftp = ftplib.FTP(self.host)
         ftp.login(self.user, self.password)
         ftp.set_pasv(True)
-        ftp.cwd("/")
+        ftp.cwd(self.ftpInputDir)
         ftp.retrbinary('RETR geoserver.txt', geoserverFilesToDownload.write)
         geoserverFilesToDownload.close()        
 
