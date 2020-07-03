@@ -1,11 +1,11 @@
 # To build image for this dockerfile use this command:
-#   docker build -t terrabrasilis/raster-ftp-download:v0.2 -f raster-ftp-download-env/Dockerfile .
+#   docker build -t terrabrasilis/raster-ftp-download:<tag-version> -f raster-ftp-download-env/Dockerfile .
 #
 # To run without compose but with shell terminal use this command:
-#   docker run --rm --name raster-ftp-download -v $PWD/raster-ftp-download/data:/usr/local/data -it terrabrasilis/raster-ftp-download:v0.2 sh
+#   docker run --rm --name raster-ftp-download -v $PWD/raster-ftp-download/data:/usr/local/data -it terrabrasilis/raster-ftp-download:<tag-version> sh
 #
 # To run without compose and without shell terminal use this command:
-#   docker run -d --rm --name raster-ftp-download -v $PWD/raster-ftp-download/data:/usr/local/data terrabrasilis/raster-ftp-download:v0.2
+#   docker run -d --rm --name raster-ftp-download -v $PWD/raster-ftp-download/data:/usr/local/data terrabrasilis/raster-ftp-download:<tag-version>
 # 
 # Information from doc of help about run one container without an explicit service. Run in background
 # --------------------------------------------------------------------------------
@@ -19,26 +19,24 @@
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
 FROM python:3.5.2-alpine
 
+ARG VERSION="1.0.0"
+
 LABEL "br.inpe.dpi"="INPE/DPI-TerraBrasilis"
 LABEL br.inpe.dpi.terrabrasilis="microservice"
-LABEL version="0.2"
+LABEL version=${VERSION}
 LABEL author="Jether Rodrigues"
 LABEL author.email="jetherrodrigues@gmail.com"
-LABEL description="This microservice execute the FTP images download and store them into a folder. \
+LABEL collaborator="Andre Carvalho"
+LABEL collaborator.email="andre.carvalho@inpe.br"
+LABEL description="This microservice downloads files from an FTP and stores them in a folder. \
 No ports are exposed, runs only autonomous job via cron."
 
 ENV PYTHONUNBUFFERED 1
 #-------------Application Specific Stuff ----------------------------------------------------
 
 RUN apk update \
-  && apk add --no-cache --update \
-    build-base \
-    postgresql \
-    postgresql-dev \
-    libpq \
-    libxslt-dev \
-    libxml2-dev \
-    tzdata
+&& apk add --no-cache --update \
+  tzdata
 
 # define the timezone to run cron
 ENV TZ=America/Sao_Paulo
@@ -51,8 +49,7 @@ ENV INSTALL_PATH /usr/local
 RUN mkdir $INSTALL_PATH/common_modules
 COPY common_modules/ $INSTALL_PATH/common_modules/
 # Install Python requirements
-RUN pip install -r $INSTALL_PATH/common_modules/configuration/config/requirements.txt && \
-pip install -r $INSTALL_PATH/common_modules/postgresql/config/requirements.txt
+RUN pip install -r $INSTALL_PATH/common_modules/configuration/config/requirements.txt
 # END COMMON MODULES INSTALATION
 # ------------------------------------------------------
 
@@ -67,9 +64,9 @@ RUN pip install -r $INSTALL_PATH/raster-ftp-download/config/requirements.txt
 
 # install and enable cron job scripts
 ADD raster-ftp-download-env/cron_exec.sh $INSTALL_PATH/
-RUN chmod +x /usr/local/cron_exec.sh
 ADD raster-ftp-download-env/ftp-schedule.cron /etc/crontabs/root
-RUN chmod +x /etc/crontabs/root
+RUN chmod +x /usr/local/cron_exec.sh \
+&& chmod +x /etc/crontabs/root
 
 # 
 ENV DOCKER_ENV True
