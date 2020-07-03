@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=$(cat ../deter-sar-ftp-download/PROJECT_VERSION | grep -oP '(?<="version": ")[^"]*')
+VERSION=$(cat ../deter-sar-ftp-download/COMPONENT_VERSION | grep -oP '(?<="version": ")[^"]*')
 export VERSION
 
 # build all images
