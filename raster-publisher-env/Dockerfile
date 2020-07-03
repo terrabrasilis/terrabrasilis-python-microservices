@@ -35,30 +35,19 @@ ENV PYTHONUNBUFFERED 1
 
 RUN apk update \
   && apk add --no-cache --update \
-    build-base \
-    postgresql \
-    postgresql-dev \
-    libpq \
-    libxslt-dev \
-    libxml2-dev \
-    tzdata
+    curl \
+    tzdata \
+    && rm -rf /var/cache/apk/*
 
 # define the timezone to run cron
 ENV TZ=America/Sao_Paulo
 #---------------------------------------------------------------------------------------------
-
-# Install CURL
-RUN apk add --update \
-    curl \
-    && rm -rf /var/cache/apk/*
-
 # INSTALL COMMON MODULES
 # ------------------------------------------------------
 RUN mkdir $INSTALL_PATH/common_modules
 COPY common_modules/ $INSTALL_PATH/common_modules/
 # Install Python requirements
-RUN pip install -r $INSTALL_PATH/common_modules/configuration/config/requirements.txt && \
-pip install -r $INSTALL_PATH/common_modules/postgresql/config/requirements.txt
+RUN pip install -r $INSTALL_PATH/common_modules/configuration/config/requirements.txt
 # END COMMON MODULES INSTALATION
 # ------------------------------------------------------
 
@@ -73,16 +62,16 @@ RUN pip install -r $INSTALL_PATH/raster-publisher/config/requirements.txt
 
 # install and enable cron job scripts
 ADD raster-publisher-env/cron_exec.sh $INSTALL_PATH/
-RUN chmod +x /usr/local/cron_exec.sh
 ADD raster-publisher-env/publisher-schedule.cron /etc/crontabs/root
-RUN chmod +x /etc/crontabs/root
+RUN chmod +x /usr/local/cron_exec.sh \
+&& chmod +x /etc/crontabs/root
 
 # 
 ENV DOCKER_ENV True
 
-RUN mkdir -p /home/dados/Imagens
+RUN mkdir -p /geoserver/storage/data
 
-VOLUME ["/usr/local/data", "/usr/local/data/processed", "/usr/local/data/config", "/home/dados/Imagens"]
+VOLUME ["/usr/local/data", "/usr/local/data/processed", "/usr/local/data/config", "/geoserver/storage/data"]
 
 WORKDIR $INSTALL_PATH
 
