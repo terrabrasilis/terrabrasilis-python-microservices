@@ -1,11 +1,11 @@
 # To build image for this dockerfile use this command:
-#   docker build -t terrabrasilis/raster-process:v0.1 -f raster-process-env/Dockerfile .
+#   docker build -t terrabrasilis/raster-process:<tag-version> -f raster-process-env/Dockerfile .
 #
 # To run without compose but with shell terminal use this command:
-#   docker run --rm --name raster-process -v $PWD/raster-process/data:/usr/local/data -it terrabrasilis/raster-process:v0.1 sh
+#   docker run --rm --name raster-process -v $PWD/raster-process/data:/usr/local/data -it terrabrasilis/raster-process:<tag-version> sh
 #
 # To run without compose and without shell terminal use this command:
-#   docker run -d --rm --name raster-process -v $PWD/raster-process/data:/usr/local/data terrabrasilis/raster-process:v0.1
+#   docker run -d --rm --name raster-process -v $PWD/raster-process/data:/usr/local/data terrabrasilis/raster-process:<tag-version>
 # 
 # Information from doc of help about run one container without an explicit service. Run in background
 # --------------------------------------------------------------------------------
@@ -19,18 +19,18 @@
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
 FROM python:3.6-alpine
 
+ARG VERSION="1.0.0"
+
 LABEL "br.inpe.dpi"="INPE/DPI-TerraBrasilis"
 LABEL br.inpe.dpi.terrabrasilis="microservice"
-LABEL version="0.1"
+LABEL version=${VERSION}
 LABEL author="Jether Rodrigues"
 LABEL author.email="jetherrodrigues@gmail.com"
-LABEL description="This microservice list all *.tif files on processed folder and execte gdal_translate cmd. \
+LABEL collaborator="Andre Carvalho"
+LABEL collaborator.email="andre.carvalho@inpe.br"
+LABEL description="This microservice lists all * .tif files in the downloaded folder and \
+performs a conversion operation using the gdal_translate command. \
 No ports are exposed, runs only autonomous job via cron."
-
-# define the install path env var
-ENV INSTALL_PATH /usr/local
-ENV GDAL_VERSION=v2.2.4
-ENV LIBKML_VERSION=1.3.0
 
 ENV PYTHONUNBUFFERED 1
 #-------------Application Specific Stuff ----------------------------------------------------
@@ -38,16 +38,17 @@ ENV PYTHONUNBUFFERED 1
 RUN apk update \
   && apk add --no-cache --update \
     build-base \
-    postgresql \
-    postgresql-dev \
-    libpq \
-    libxslt-dev \
-    libxml2-dev \
     tzdata
 
 # define the timezone to run cron
 ENV TZ=America/Sao_Paulo
 #---------------------------------------------------------------------------------------------
+
+# define the install path env var
+ENV INSTALL_PATH /usr/local
+# define the GDAL version
+ENV GDAL_VERSION=v2.2.4
+ENV LIBKML_VERSION=1.3.0
 
 #--------------------------- Install GDAL ----------------------------------------------------
 RUN \
@@ -93,8 +94,6 @@ RUN \
     --without-pcraster \
     --without-webp \
   && make && make install && \
-  # gdal python bindings
-  #pip install gdal --no-cache-dir && \
   # cleanup
   apk del build-dependencies && \
   cd / && \
@@ -108,8 +107,7 @@ RUN \
 RUN mkdir $INSTALL_PATH/common_modules
 COPY common_modules/ $INSTALL_PATH/common_modules/
 # Install Python requirements
-RUN pip install -r $INSTALL_PATH/common_modules/configuration/config/requirements.txt && \
-pip install -r $INSTALL_PATH/common_modules/postgresql/config/requirements.txt
+RUN pip install -r $INSTALL_PATH/common_modules/configuration/config/requirements.txt
 # END COMMON MODULES INSTALATION
 # ------------------------------------------------------
 
@@ -124,9 +122,9 @@ RUN pip install -r $INSTALL_PATH/raster-process/config/requirements.txt
 
 # install and enable cron job scripts
 ADD raster-process-env/cron_exec.sh $INSTALL_PATH/
-RUN chmod +x /usr/local/cron_exec.sh
 ADD raster-process-env/process-schedule.cron /etc/crontabs/root
-RUN chmod +x /etc/crontabs/root
+RUN chmod +x /usr/local/cron_exec.sh \
+&& chmod +x /etc/crontabs/root
 
 # 
 ENV DOCKER_ENV True
