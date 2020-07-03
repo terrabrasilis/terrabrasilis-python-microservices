@@ -108,15 +108,16 @@ class PublisherService:
         host = self.path_cfg["url"]
         user = self.path_cfg["user"]
         password = self.path_cfg["password"]
+        workspace = self.path_cfg["workspace"]
 
-        create_storage_url = host + "/rest/workspaces/terraamazon/coveragestores"
+        storage_url = "{0}/rest/workspaces/{1}/coveragestores".format(host,workspace)
         storage_name = fileToPublish.split(".")[0] + "_store"
 
-        remove_storage_url = create_storage_url + "/" + storage_name + "?recurse=true"
+        remove_storage_url = storage_url + "/" + storage_name + "?recurse=true"
 
-        create_layer_url = create_storage_url + "/" + storage_name + "/coverages"
+        create_layer_url = storage_url + "/" + storage_name + "/coverages"
 
-        create_storage_url = create_storage_url + "?configure=all"
+        create_storage_url = storage_url + "?configure=all"
 
         # REST requests ###############################
         headers = {'Content-type' : 'application/xml'}
@@ -128,7 +129,7 @@ class PublisherService:
         # Cria o coverage store
         response = requests.post(create_storage_url
             , headers=headers
-            , data = self.__getStorageXml(storage_name, imagePathToPublish)
+            , data = self.__getStorageXml(workspace, storage_name, imagePathToPublish)
             , auth=(user, password))        
         self.__log("Geoserver response {0} to post covarage. Code:  {1}...".format(create_storage_url, response.text))
 
@@ -143,13 +144,20 @@ class PublisherService:
     """
     Return the store param
     """
-    def __getStorageXml(self, storeName, fileToPublish):
-        return "<coverageStore><name>" + storeName + "</name><workspace>terraamazon</workspace><enabled>true</enabled><type>GeoTIFF</type><url>" + fileToPublish + "</url></coverageStore>"
+    def __getStorageXml(self, workspace, storeName, fileToPublish):
+        
+        coverageWorkspace="<workspace>{0}</workspace>".format(workspace)
+        coverageUrl="<url>{0}</url>".format(fileToPublish)
+        coverageName="<name>{0}</name>".format(storeName)
+        coverageDefaults="<enabled>true</enabled><type>GeoTIFF</type>"
+        coverageStore="<coverageStore>{0}{1}{2}{3}</coverageStore>".format(coverageName,coverageWorkspace,coverageUrl,coverageDefaults)
+        return coverageStore
+        # return "<coverageStore><name>" + storeName + "</name><workspace>{0}</workspace><enabled>true</enabled><type>GeoTIFF</type><url>" + fileToPublish + "</url></coverageStore>"
     
     """
     Return the layer param
     """
-    def __getLayerXml(self, fileToPublish):        
+    def __getLayerXml(self, fileToPublish):
         # Cbers4_AWFI_159_117_18012018_10bits_B13G14R15_contraste.tif
         fileSplit = fileToPublish.split("_")
         
