@@ -142,10 +142,10 @@ class CopyDao:
             sql_filter = " {0} AND created_date::date > '{1}'".format(sql_filter, from_date)
 
         sql = "SELECT ('INSERT INTO {0} (object_id, cell_oid, local_name, class_name, scene_id, task_id,".format(write_to_table)
-        sql += "satellite, sensor, spatial_data, area_total_km, path, row, quadrant,view_date, created_date, updated_date, auditar, control) VALUES(' || "
+        sql += "satellite, sensor, spatial_data, area_total_km, path_row, quadrant,view_date, created_date, updated_date, auditar, control) VALUES(' || "
         sql += "object_id || ',''' || cell_oid || ''',''' || local_name || ''',''' || class_name || ''',' || scene_id || ',' || task_id || ',''' || "
-        sql += "satellite || ''',''' || sensor || ''',''' || spatial_data::text || ''',' || ST_Area(ST_Transform(spatial_data,4326)::geography)/1000000 || ',' || quote_nullable(path) || ',' || "
-        sql += "quote_nullable(row) || ',' || quote_nullable(quadrant) || ',''' || view_date || ''',' || quote_nullable(created_date) || ',' || quote_nullable(updated_date) || ',' || "
+        sql += "satellite || ''',''' || sensor || ''',''' || spatial_data::text || ''',' || ST_Area(ST_Transform(spatial_data,4326)::geography)/1000000 || ',' || "
+        sql += "quote_nullable(path_row) || ',' || quote_nullable(quadrant) || ',''' || view_date || ''',' || quote_nullable(created_date) || ',' || quote_nullable(updated_date) || ',' || "
         sql += "auditar || ',' || quote_nullable(control) || ');') as inserts "
         sql += "FROM {0} ".format(read_from_table)
 
@@ -244,8 +244,7 @@ class CopyDao:
         sql += "sensor text, "
         sql += "spatial_data geometry(Polygon,4674), "
         sql += "area_total_km double precision, "
-        sql += "path character varying(3), "
-        sql += "row character varying(3), "
+        sql += "path_row character varying(10), "
         sql += "quadrant character varying(1), "
         sql += "view_date date, "
         sql += "created_date timestamp without time zone, "
