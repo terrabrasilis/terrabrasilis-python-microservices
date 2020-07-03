@@ -1,11 +1,11 @@
 # To build image for this dockerfile use this command:
-#   docker build -t terrabrasilis/raster-publisher:v0.1 -f raster-publisher-env/Dockerfile .
+#   docker build -t terrabrasilis/raster-publisher:<tag-version> -f raster-publisher-env/Dockerfile .
 #
 # To run without compose but with shell terminal use this command:
-#   docker run --rm --name raster-publisher -v $PWD/raster-publisher/data:/usr/local/data -it terrabrasilis/raster-publisher:v0.1 sh
+#   docker run --rm --name raster-publisher -v $PWD/raster-publisher/data:/usr/local/data -it terrabrasilis/raster-publisher:<tag-version> sh
 #
 # To run without compose and without shell terminal use this command:
-#   docker run -d --rm --name raster-publisher -v $PWD/raster-publisher/data:/usr/local/data terrabrasilis/raster-publisher:v0.1
+#   docker run -d --rm --name raster-publisher -v $PWD/raster-publisher/data:/usr/local/data terrabrasilis/raster-publisher:<tag-version>
 # 
 # Information from doc of help about run one container without an explicit service. Run in background
 # --------------------------------------------------------------------------------
@@ -19,12 +19,17 @@
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
 FROM python:3.6-alpine
 
+ARG VERSION="1.0.0"
+
 LABEL "br.inpe.dpi"="INPE/DPI-TerraBrasilis"
 LABEL br.inpe.dpi.terrabrasilis="microservice"
-LABEL version="0.1"
+LABEL version=${VERSION}
 LABEL author="Jether Rodrigues"
 LABEL author.email="jetherrodrigues@gmail.com"
-LABEL description="This microservice list all *.tif files on processed folder and publish tha raster in Geoserver using Geoserver API REST. \
+LABEL collaborator="Andre Carvalho"
+LABEL collaborator.email="andre.carvalho@inpe.br"
+LABEL description="This microservice lists all * .tif files in the processed folder \
+and publishes these rasters to the Geoserver using the Geoserver REST API. \
 No ports are exposed, runs only autonomous job via cron."
 
 # define the install path env var
