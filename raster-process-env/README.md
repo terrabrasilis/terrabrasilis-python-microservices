@@ -2,18 +2,29 @@
 
 Define the environment to runs the autonomous job via cron.
 
-This service execute the raster images process.
+This service performs the process of converting raster images.
 
 ## Cron job
 Use the process-schedule.cron to define the start time the job.
 
-## Run the docker
+The default is: every hour and 10, 30 and 50 minutes
+
+## Build the docker image
 
 To build image for this dockerfile use this command:
 
 ```bash
-docker build -t terrabrasilis/raster-process:v0.1 -f raster-process-env/Dockerfile .
+# use script to build
+cd raster-process-env/
+./docker-build.sh
+
+# or use the command
+docker build -t terrabrasilis/raster-process:<version> -f raster-process-env/Dockerfile .
 ```
+
+When use the script docker-build.sh to build, change the desired image version in raster-process/COMPONENT_VERSION file.
+
+## Run the docker
 
 To run without compose but with shell terminal, use this command:
 
