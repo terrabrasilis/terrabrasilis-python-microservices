@@ -1,0 +1,7 @@
+[developer] 
+from: /tmp/raster-download
+to: /tmp/raster-process
+
+[production] 
+from: /usr/local/data
+to: /usr/local/data/processed
