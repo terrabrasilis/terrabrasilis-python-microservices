@@ -69,8 +69,8 @@ class FtpService:
         self.host = self.input_cfg["host"]
         self.user = self.input_cfg["user"]
         self.password = self.input_cfg["password"]
-        self.ftpInputDir = self.input_cfg["ftpinputdir"]
-        self.downloadTo = os.path.realpath(self.path_cfg["download"])
+        self.downloadTo = os.path.realpath(self.path_cfg["download_to"])
+        self.ftpInputDir = self.path_cfg["download_from"]
 
         downloadFolder = self.downloadTo
         geoserverFilesToDownload = open("geoserver.txt", "wb")

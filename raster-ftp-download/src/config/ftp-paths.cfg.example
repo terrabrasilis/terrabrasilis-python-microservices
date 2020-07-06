@@ -1,5 +1,7 @@
 [developer] 
-download: <a/local/directory/to/store/downloaded/files>
+download_to: <a/host/directory/to/store/downloaded/files>
+download_from: <the/FTP/directory/where/the/files/are>
 
 [production] 
-download: <a/host/directory/to/store/downloaded/files>
+download_to: <a/host/directory/to/store/downloaded/files>
+download_from: <the/FTP/directory/where/the/files/are>
