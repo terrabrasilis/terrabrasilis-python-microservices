@@ -64,33 +64,32 @@ class PublisherService:
             sendEmail = False
             filesToMove = os.listdir(fromPath)
             msgToEmailBody = ""
-            for toMove in filesToMove:
-                if ".tif" in toMove:  
-                    fileSplit = toMove.split("_")
+            for fileToMove in filesToMove:
+                if ".tif" in fileToMove:  
+                    fileSplit = fileToMove.split("_")
 
-                    pathToReadToMove = fromPath + "/" + toMove
+                    pathToReadToMove = fromPath + "/" + fileToMove
 
                     ## build the complete path
                     month = self.__getStringMonthByNumberMonth(self.__convertNumber(fileSplit[4][2:4]))
                     if month == "Invalid": 
-                        pathCompleteToMove = toPath + "/" + fileSplit[0] + "_" + fileSplit[1] + "_" + fileSplit[4][4:]
+                        pathCompleteToMove = toPath + "/" + fileSplit[4][4:]
                     else:
-                        pathCompleteToMove = toPath + "/" + fileSplit[0] + "_" + fileSplit[1] + "_" + fileSplit[4][4:] + "/" + month
+                        pathCompleteToMove = toPath + "/" + fileSplit[4][4:] + "/" + month
                     
                     ## if the complete path not exists then create
                     if not os.path.exists(pathCompleteToMove):
                         os.makedirs(pathCompleteToMove)
                     
                     ## move file to publish path
-                    self.__log("Move file {0} from {1} to {2}...".format(toMove, pathToReadToMove, pathCompleteToMove))
+                    self.__log("Move file {0} from {1} to {2}...".format(fileToMove, pathToReadToMove, pathCompleteToMove))
                     if os.path.exists(pathToReadToMove): 
-                        pathCompleteToMove = pathCompleteToMove + "/" + toMove
-                        shutil.move(pathToReadToMove, pathCompleteToMove)
+                        shutil.move(pathToReadToMove, pathCompleteToMove + "/" + fileToMove)
                     
                     ## really publish the layers
-                    if os.path.exists(pathCompleteToMove): 
-                        self.__publish(pathCompleteToMove, toMove)
-                        msgToEmailBody = msgToEmailBody + toMove + "\r\n"
+                    if os.path.isfile(pathCompleteToMove + "/" + fileToMove):
+                        self.__publish(pathCompleteToMove, fileToMove)
+                        msgToEmailBody = msgToEmailBody + fileToMove + "\r\n"
                         sendEmail = True
             
             if sendEmail:
@@ -129,7 +128,7 @@ class PublisherService:
         # Cria o coverage store
         response = requests.post(create_storage_url
             , headers=headers
-            , data = self.__getStorageXml(workspace, storage_name, imagePathToPublish)
+            , data = self.__getStorageXml(workspace, storage_name, imagePathToPublish+"/"+fileToPublish)
             , auth=(user, password))        
         self.__log("Geoserver response {0} to post covarage. Code:  {1}...".format(create_storage_url, response.text))
 
