@@ -80,15 +80,15 @@ class FtpService:
         ftp.set_pasv(True)
         ftp.cwd(self.ftpInputDir)
         ftp.retrbinary('RETR geoserver.txt', geoserverFilesToDownload.write)
-        geoserverFilesToDownload.close()        
+        geoserverFilesToDownload.close()
 
         geoserverFilesToDownload = open("geoserver.txt", "rb")
         buffer = geoserverFilesToDownload.read()
 
         toIterate = buffer.split(b";")
-        for fileToDownload in toIterate:            
-            if fileToDownload != "\r\n":                
-                self.__getFile(ftp, (fileToDownload.rstrip(b'\r\n')).decode())
+        for fileToDownload in toIterate:
+            if bool(fileToDownload and fileToDownload.strip()) and fileToDownload != "\r\n":
+                self.__getFile(ftp, ((fileToDownload.strip()).rstrip(b'\r\n')).decode())
 
         # for fileToDelete in toIterate:
         #     ftp.delete(fileToDelete)
