@@ -4,7 +4,7 @@ import traceback
 from send import SenderMail
 
 
-pathToConfigFile = os.path.abspath(os.path.dirname(__file__) + '/config_test')
+pathToConfigFile = os.path.abspath(os.path.realpath(os.path.dirname(__file__) ) + '/config_test')
 
 bodyHeader='Use este link para baixar os dados.'
 bodyFooter='Att. Equipe do projeto PRODES.'
@@ -25,9 +25,9 @@ bodyHtml = """\
     </html>
     """.format(bodyHeader, bodyHtml, bodyFooter)
 try:
-    subject='[PRODES] - Link para download de dados.'
+    subject='[TESTE] - Link para download de dados.'
     mail = SenderMail(pathToConfigFile)
-    mail.setEmailTo('afacarvalho@yahoo.com.br')
+    #mail.setEmailTo('afacarvalho@yahoo.com.br')
     mail.send(subject, bodyHeader, bodyHtml)
 except BaseException as error:
     print(str(error))

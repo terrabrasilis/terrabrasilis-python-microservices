@@ -21,16 +21,18 @@ class SenderMail(object):
         cfg_data = cfg.get()
         mail_user = "user"
         mail_pass = "pass"
+        to = ""
+        if 'mail_user' in cfg_data.keys():
+            mail_user = cfg_data['mail_user']
+        if 'mail_pass' in cfg_data.keys():
+            mail_pass = cfg_data['mail_pass']
+        if 'to' in cfg_data.keys():
+            to = cfg_data['to']
         # get user and password for email account from secrets
         if('servertype' in cfg_data.keys() and cfg_data['servertype']=="google"):
             self.user = os.getenv("SMTP_GOOGLE_MAIL_USER_FILE", mail_user)
             self.password = os.getenv("SMTP_GOOGLE_MAIL_PASS_FILE", mail_pass)
         else:
-            if 'mail_user' in cfg_data.keys():
-                mail_user = cfg_data['mail_user']
-            if 'mail_pass' in cfg_data.keys():
-                mail_pass = cfg_data['mail_pass']
-
             self.user = os.getenv("SMTP_INPE_MAIL_USER_FILE", mail_user)
             self.password = os.getenv("SMTP_INPE_MAIL_PASS_FILE", mail_pass)
 
@@ -41,13 +43,11 @@ class SenderMail(object):
         
         self.email_from = self.user
         
-        self.to = os.getenv("MAIL_TO", "to")
+        self.to = os.getenv("MAIL_TO", to)
         if os.path.exists(self.to):
             self.to = open(self.to, 'r').read()
         # try get alias to email from
-        email_alias = os.getenv("MAIL_FROM_ALIAS", "terrabrasilis@dpi.inpe.br")
-        if email_alias:
-            self.email_from = email_alias
+        self.email_from = os.getenv("MAIL_FROM_ALIAS", self.email_from)
 
         # connection
         try:
