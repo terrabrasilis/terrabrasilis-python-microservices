@@ -159,12 +159,14 @@ class PublisherService:
     Return the layer param
     """
     def __getLayerXml(self, fileToPublish):
-        # Cbers4_AWFI_159_117_18012018_10bits_B13G14R15_contraste.tif
-        fileSplit = fileToPublish.split("_")
+        # CBERS-4_AWFI_159_117_18012018_10bits_B13G14R15_contraste.tif OR CBERS-4_AWFI_159_117_18012018.tif
+        # file name without extension
+        onlyFileName=fileToPublish.split(".tif")
+        fileSplit = onlyFileName[0].split("_")
         
         layerName = fileSplit[0] + "_" + fileSplit[1] + "_" + fileSplit[2] + "_" + fileSplit[3] + "_" + fileSplit[4]
         layerTitle = fileSplit[0] + " " + fileSplit[1] + " " + fileSplit[2] + "_" + fileSplit[3] + " " + fileSplit[4]
-        layerAbstract = "Imagem " + fileSplit[0] + " " + fileSplit[1] + " de " + fileSplit[4] + " na orbita-ponto " + fileSplit[2] + "_" + fileSplit[3] + " com contraste. Composicao de bandas " + fileSplit[6]
+        layerAbstract = "Imagem " + fileSplit[0] + " " + fileSplit[1] + " de " + fileSplit[4] + " na orbita-ponto " + fileSplit[2] + "_" + fileSplit[3] + " com contraste."
         
         return "<coverage><name>" + layerName + "</name><title>" + layerTitle + "</title><abstract>" + layerAbstract + "</abstract><dimensions><coverageDimension><name>RED_BAND</name><description>GridSampleDimension[-Infinity,Infinity]</description><range><min>0.0</min><max>255.0</max></range><nullValues><double>0.0</double></nullValues><unit>W.m-2.Sr-1</unit><dimensionType><name>UNSIGNED_8BITS</name></dimensionType></coverageDimension><coverageDimension><name>GREEN_BAND</name><description>GridSampleDimension[-Infinity,Infinity]</description><range><min>0.0</min><max>255.0</max></range><nullValues><double>0.0</double></nullValues><unit>W.m-2.Sr-1</unit><dimensionType><name>UNSIGNED_8BITS</name></dimensionType></coverageDimension><coverageDimension><name>BLUE_BAND</name><description>GridSampleDimension[-Infinity,Infinity]</description><range><min>0.0</min><max>255.0</max></range><nullValues><double>0.0</double></nullValues><unit>W.m-2.Sr-1</unit><dimensionType><name>UNSIGNED_8BITS</name></dimensionType></coverageDimension></dimensions><parameters><entry><string>InputTransparentColor</string><string>#000000</string></entry><entry><string>SUGGESTED_TILE_SIZE</string><string>512,512</string></entry></parameters></coverage>"
 
