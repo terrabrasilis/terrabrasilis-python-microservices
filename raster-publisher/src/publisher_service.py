@@ -65,8 +65,10 @@ class PublisherService:
             filesToMove = os.listdir(fromPath)
             msgToEmailBody = ""
             for fileToMove in filesToMove:
-                if ".tif" in fileToMove:  
-                    fileSplit = fileToMove.split("_")
+                if ".tif" in fileToMove:
+                    # file name without extension
+                    onlyFileName=fileToMove.split(".tif")
+                    fileSplit = onlyFileName[0].split("_")
 
                     pathToReadToMove = fromPath + "/" + fileToMove
 
