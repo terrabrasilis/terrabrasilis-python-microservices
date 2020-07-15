@@ -82,13 +82,13 @@ class FtpService:
         ftp.retrbinary('RETR geoserver.txt', geoserverFilesToDownload.write)
         geoserverFilesToDownload.close()
 
-        geoserverFilesToDownload = open("geoserver.txt", "rb")
+        geoserverFilesToDownload = open("geoserver.txt", "r")
         buffer = geoserverFilesToDownload.read()
 
-        toIterate = buffer.split(b";")
+        toIterate = buffer.split(";")
         for fileToDownload in toIterate:
-            if bool(fileToDownload and fileToDownload.strip()) and fileToDownload != "\r\n":
-                self.__getFile(ftp, ((fileToDownload.strip()).rstrip(b'\r\n')).decode())
+            if bool(fileToDownload and fileToDownload.strip()):
+                self.__getFile(ftp, fileToDownload.strip())
 
         # for fileToDelete in toIterate:
         #     ftp.delete(fileToDelete)
