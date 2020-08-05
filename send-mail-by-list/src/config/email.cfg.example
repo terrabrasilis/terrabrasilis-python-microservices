@@ -1,0 +1,6 @@
+[email]
+servertype: google
+server: smtp.domain.com
+port: 587
+mail_user: <your_mail_used_to_send>
+mail_pass: <secret>
