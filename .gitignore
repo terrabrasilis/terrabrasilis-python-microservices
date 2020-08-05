@@ -5,5 +5,6 @@
 */env/
 # ignore log directory
 */log/
+**/*.log
 # ignore all config files to protect the sensitive data
 **/*.cfg
