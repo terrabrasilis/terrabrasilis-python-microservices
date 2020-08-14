@@ -1,11 +1,11 @@
 # To build image for this dockerfile use this command:
-#   docker build --no-cache -t terrabrasilis/deter-report:v0.5 -f deter-report-env/Dockerfile .
+#   docker build --no-cache -t terrabrasilis/deter-report:<version> -f deter-report-env/Dockerfile .
 #
 # To run without compose but with shell terminal use this command:
-#   docker run --rm --name terrabrasilis_deter_report -v $PWD/deter-report/data:/usr/local/data -it terrabrasilis/deter-report:v0.5 sh
+#   docker run --rm --name terrabrasilis_deter_report -v $PWD/deter-report/data:/usr/local/data -it terrabrasilis/deter-report:<version> sh
 #
 # To run without compose and without shell terminal use this command:
-#   docker run -d --rm --name terrabrasilis_deter_report -v $PWD/deter-report/data:/usr/local/data terrabrasilis/deter-report:v0.5
+#   docker run -d --rm --name terrabrasilis_deter_report -v $PWD/deter-report/data:/usr/local/data terrabrasilis/deter-report:<version>
 # 
 # Information from doc of help about run one container without an explicit service. Run in background
 # --------------------------------------------------------------------------------
@@ -19,9 +19,11 @@
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
 FROM python:3.5.2-alpine
 
+ARG VERSION="1.0.0"
+
 LABEL "br.inpe.dpi"="INPE/DPI-TerraBrasilis"
 LABEL br.inpe.dpi.terrabrasilis="microservice"
-LABEL version="v0.5"
+LABEL version=${VERSION}
 LABEL author="Andre Carvalho"
 LABEL author.email="andre.carvalho@inpe.br"
 LABEL description="This microservice provides a task to reads data from publish database and send an e-mail with report \
