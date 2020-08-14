@@ -22,7 +22,7 @@ class ReadDataDao:
         """
         sql = "SELECT COUNT(*) as num_polygons, MIN(date) as start_date, MAX(date) as end_date, SUM(areamunkm) as area "
         sql += "FROM terrabrasilis.deter_table "
-        sql += "WHERE date_audit <= (SELECT date FROM public.deter_publish_date) "
+        sql += "WHERE date <= (SELECT date FROM public.deter_publish_date) "
         sql += "AND to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
         sql += "AND to_char(date at time zone 'UTC', 'MM') = to_char(now() at time zone 'UTC', 'MM') "
         sql += "AND areatotalkm >= 0.0625 "
@@ -39,7 +39,7 @@ class ReadDataDao:
         """
         sql = "SELECT COUNT(*) as num_polygons, MIN(date) as start_date, MAX(date) as end_date, SUM(round(areamunkm::numeric,2)) as area "
         sql += "FROM terrabrasilis.deter_table "
-        sql += "WHERE date_audit > (SELECT date FROM public.deter_publish_date) "
+        sql += "WHERE date > (SELECT date FROM public.deter_publish_date) "
         # sql += "AND to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
         # sql += "AND to_char(date at time zone 'UTC', 'MM') = to_char(now() at time zone 'UTC', 'MM') "
         sql += "AND areatotalkm >= 0.0625 "
@@ -56,7 +56,7 @@ class ReadDataDao:
         """
         sql = "SELECT COUNT(*) as num_polygons, date, SUM(round(areamunkm::numeric,2)) as area "
         sql += "FROM terrabrasilis.deter_table "
-        sql += "WHERE date_audit > (SELECT date FROM public.deter_publish_date) "
+        sql += "WHERE date > (SELECT date FROM public.deter_publish_date) "
         # sql += "AND to_char(date at time zone 'UTC', 'YYYY') = to_char(now() at time zone 'UTC', 'YYYY') "
         # sql += "AND to_char(date at time zone 'UTC', 'MM') = to_char(now() at time zone 'UTC', 'MM') "
         sql += "AND areatotalkm >= 0.0625 "
@@ -135,9 +135,9 @@ class ReadDataDao:
         
         return ret_data
 
-    def getAuditDateOfLastReleaseData(self):
+    def getPublishDateOfLastReleaseData(self):
         """
-        Read the audit date used to release data.
+        Read the publish date used to release data.
         """
         sql = "SELECT date FROM public.deter_publish_date"
         
@@ -149,7 +149,7 @@ class ReadDataDao:
         """
         sql = "SELECT MAX(date) as date "
         sql +="FROM terrabrasilis.deter_table "
-        sql +="WHERE date_audit <= (SELECT date FROM public.deter_publish_date)"
+        sql +="WHERE date <= (SELECT date FROM public.deter_publish_date)"
 
         return self.__execSQL(sql)
 

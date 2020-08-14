@@ -67,8 +67,8 @@ class ReportService:
             currentDate = lastReleaseDate["date"].strftime('%d/%m/%Y')
             nextDateOfData = lastReleaseDate["date"] + timedelta(days=1)
 
-            # The date used to release data weekly. Refers to the audit date.
-            publishDate = dao.getAuditDateOfLastReleaseData()
+            # The date used to release data weekly. Refers to the image date.
+            publishDate = dao.getPublishDateOfLastReleaseData()
             nextFriday = publishDate["date"] + timedelta(days=7)
             nextRelease = (publishDate["date"] + timedelta(days=7)).strftime('%d/%m/%Y')
             releaseDate = (publishDate["date"] + timedelta(days=14)).strftime('%d/%m/%Y')
@@ -140,8 +140,7 @@ class ReportService:
                 <p>
                 <h3>{0}</h3>
                 <h5>Dados liberados ao público até: {3}</h5>
-                <h5>Em {4}* serão liberados os dados interpretados até: {5}*</h5>
-                <small><b>*</b>referente a data de auditoria</small>
+                <h5>Em {4} serão liberados os dados interpretados até: {5}</h5>
                 </p>
                 {1}
                 <p style="color:#C0C0C0;">{2}</p>
