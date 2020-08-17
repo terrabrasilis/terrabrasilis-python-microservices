@@ -28,7 +28,7 @@ class ReportService:
         if(todayDate>nextFriday):
             totalAreaLastWeek=0 # ctrl to sum area for last week
             for record in data:
-                if(record["date"]<nextFriday):
+                if(record["date"]<=nextFriday):
                     totalAreaLastWeek+=record["area"]
                     itDate=record["date"]
 
@@ -44,7 +44,7 @@ class ReportService:
                 '<td>{0}</td>'.format(record["num_polygons"]),
                 '<td>{0} km²</td></tr>'.format(str(record["area"]).replace('.',',')),
             ]
-            if(itDate==record["date"]):
+            if(itDate==record["date"] and itDate>=nextFriday):
                 bodyHtml += [weekTotalHtml]
         
         return bodyHtml
@@ -140,7 +140,7 @@ class ReportService:
                 <p>
                 <h3>{0}</h3>
                 <h5>Dados liberados ao público até: {3}</h5>
-                <h5>Em {4} serão liberados os dados interpretados até: {5}</h5>
+                <h5>Em {4} serão liberados os dados até: {5}</h5>
                 </p>
                 {1}
                 <p style="color:#C0C0C0;">{2}</p>
