@@ -12,7 +12,7 @@ from common_modules.configuration.src.common_config import ConfigLoader
 sys.path.insert(0, os.path.realpath( os.path.realpath(os.path.dirname(__file__))+'/../../common_modules/email' ) )
 from send import SenderMail
 
-class PublisherService:    
+class PublisherService:
 
     """
     Constructor
@@ -120,6 +120,8 @@ class PublisherService:
 
         create_storage_url = storage_url + "?configure=all"
 
+        add_style_url = "{0}/rest/layers/{1}".format(host,workspace)
+
         # REST requests ###############################
         headers = {'Content-type' : 'application/xml'}
 
@@ -134,13 +136,24 @@ class PublisherService:
             , auth=(user, password))        
         self.__log("Geoserver response {0} to post covarage. Code:  {1}...".format(create_storage_url, response.text))
 
+        # Prepare layer params
+        layerName, layerTitle, layerAbstract, HAS_SOLO = self.__getLayerParams(fileToPublish)
+
         # Publica o layer
         response = requests.post(create_layer_url
         , headers=headers
-        , data = self.__getLayerXml(fileToPublish)
+        , data = self.__getLayerXml(layerName, layerTitle, layerAbstract)
         , auth=(user, password))
-        self.__log("Geoserver response {0} to post layer. Code:  {1}...".format(create_layer_url, response.text))        
-         
+        self.__log("Geoserver response {0} to post layer. Code:  {1}...".format(create_layer_url, response.text))
+
+        # adding alternative style to layer if no "solo" layer
+        if not HAS_SOLO:
+            DATA, URL_STYLE = self.__getStyleJSON(add_style_url,layerName,workspace,host)
+            response = requests.post(URL_STYLE
+            , headers={'Content-type' : 'application/json'}
+            , data = DATA
+            , auth=(user, password))
+            self.__log("Geoserver response {0} to post style. Code:  {1}...".format(URL_STYLE, response.text))
 
     """
     Return the store param
@@ -156,20 +169,53 @@ class PublisherService:
         # return "<coverageStore><name>" + storeName + "</name><workspace>{0}</workspace><enabled>true</enabled><type>GeoTIFF</type><url>" + fileToPublish + "</url></coverageStore>"
     
     """
-    Return the layer param
+    Return the layer params
+
+        layerName
+        layerTitle
+        layerAbstract
+        HAS_SOLO, if the layer has the "solo" as part of name.
     """
-    def __getLayerXml(self, fileToPublish):
+    def __getLayerParams(self, fileToPublish):
         # CBERS-4_AWFI_159_117_18012018_10bits_B13G14R15_contraste.tif OR CBERS-4_AWFI_159_117_18012018.tif
         # file name without extension
         onlyFileName=fileToPublish.split(".tif")
         fileSplit = onlyFileName[0].split("_")
+        SOLO_FRACTION=""
+        HAS_SOLO=False
+
+        for parts in fileSplit:
+            # if "solo" is part of the file name then the published layer must have "solo" as part of the name
+            if "solo"==parts:
+                SOLO_FRACTION="solo"
+                HAS_SOLO=True
+                break
         
         layerName = fileSplit[0] + "_" + fileSplit[1] + "_" + fileSplit[2] + "_" + fileSplit[3] + "_" + fileSplit[4]
-        layerTitle = fileSplit[0] + " " + fileSplit[1] + " " + fileSplit[2] + "_" + fileSplit[3] + " " + fileSplit[4]
+        layerName = layerName + "_" + SOLO_FRACTION if HAS_SOLO else layerName
+        layerTitle = fileSplit[0] + " " + fileSplit[1] + " " + fileSplit[2] + "_" + fileSplit[3] + " " + fileSplit[4]+ " " + SOLO_FRACTION
         layerAbstract = "Imagem " + fileSplit[0] + " " + fileSplit[1] + " de " + fileSplit[4] + " na orbita-ponto " + fileSplit[2] + "_" + fileSplit[3] + " com contraste."
-        
-        return "<coverage><name>" + layerName + "</name><title>" + layerTitle + "</title><abstract>" + layerAbstract + "</abstract><dimensions><coverageDimension><name>RED_BAND</name><description>GridSampleDimension[-Infinity,Infinity]</description><range><min>0.0</min><max>255.0</max></range><nullValues><double>0.0</double></nullValues><unit>W.m-2.Sr-1</unit><dimensionType><name>UNSIGNED_8BITS</name></dimensionType></coverageDimension><coverageDimension><name>GREEN_BAND</name><description>GridSampleDimension[-Infinity,Infinity]</description><range><min>0.0</min><max>255.0</max></range><nullValues><double>0.0</double></nullValues><unit>W.m-2.Sr-1</unit><dimensionType><name>UNSIGNED_8BITS</name></dimensionType></coverageDimension><coverageDimension><name>BLUE_BAND</name><description>GridSampleDimension[-Infinity,Infinity]</description><range><min>0.0</min><max>255.0</max></range><nullValues><double>0.0</double></nullValues><unit>W.m-2.Sr-1</unit><dimensionType><name>UNSIGNED_8BITS</name></dimensionType></coverageDimension></dimensions><parameters><entry><string>InputTransparentColor</string><string>#000000</string></entry><entry><string>SUGGESTED_TILE_SIZE</string><string>512,512</string></entry></parameters></coverage>"
 
+        return layerName, layerTitle, layerAbstract, HAS_SOLO
+
+    """
+    Return the XML structure to publish a layer
+    """
+    def __getLayerXml(self, layerName, layerTitle, layerAbstract):
+        return "<coverage><name>" + layerName + "</name><title>" + layerTitle + "</title><abstract>" + layerAbstract + "</abstract><dimensions><coverageDimension><name>RED_BAND</name><description>GridSampleDimension[-Infinity,Infinity]</description><range><min>0.0</min><max>255.0</max></range><nullValues><double>0.0</double></nullValues><unit>W.m-2.Sr-1</unit><dimensionType><name>UNSIGNED_8BITS</name></dimensionType></coverageDimension><coverageDimension><name>GREEN_BAND</name><description>GridSampleDimension[-Infinity,Infinity]</description><range><min>0.0</min><max>255.0</max></range><nullValues><double>0.0</double></nullValues><unit>W.m-2.Sr-1</unit><dimensionType><name>UNSIGNED_8BITS</name></dimensionType></coverageDimension><coverageDimension><name>BLUE_BAND</name><description>GridSampleDimension[-Infinity,Infinity]</description><range><min>0.0</min><max>255.0</max></range><nullValues><double>0.0</double></nullValues><unit>W.m-2.Sr-1</unit><dimensionType><name>UNSIGNED_8BITS</name></dimensionType></coverageDimension></dimensions><parameters><entry><string>InputTransparentColor</string><string>#000000</string></entry><entry><string>SUGGESTED_TILE_SIZE</string><string>512,512</string></entry></parameters></coverage>"
+    
+    """
+    Return the JSON structure to add optional style to the layer
+    """
+    def __getStyleJSON(self, base_style_url, layerName, workspace, host):
+        # This style must exist in the GeoServer, otherwise, it must be created previously.
+        STYLE_NAME="red_vegetation"
+        NAME="{0}:{1}".format(workspace,STYLE_NAME)
+        HREF="{0}/rest/workspaces/{1}/styles/{2}.json".format(host,workspace,STYLE_NAME)
+        DATA="{\"style\":{\"name\":\""+NAME+"\",\"href\":\""+HREF+"\"}}"
+        URL_STYLE="{0}:{1}/styles".format(base_style_url, layerName)
+        return DATA, URL_STYLE
+     
     """
     Return a month by number
     """
