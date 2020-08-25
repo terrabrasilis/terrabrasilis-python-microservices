@@ -6,8 +6,8 @@ OUTPUT_TABLE="deter_sar_1ha"
 BASE_DIR="/usr/local/data"
 DATE=$(date +"%Y-%m-%d_%H:%M:%S")
 
-export PGUSER=`cat /run/secrets/postgres.user.forest.monitor`
-export PGPASSWORD=`cat /run/secrets/postgres.pass.forest.monitor`
+export PGUSER=`cat $POSTGRES_USER_FILE`
+export PGPASSWORD=`cat $POSTGRES_PASS_FILE`
 #export PGPASSWORD="postgres"
 
 PG_BIN="/usr/bin"
