@@ -13,23 +13,25 @@ Use the dailyharvesting.cron to define the start time the job.
 To build image for this dockerfile use this command:
 
 ```bash
-docker build -t terrabrasilis/cerradodeter-syncdata:V0.6 -f cerrado-deter-env/Dockerfile .
+docker build -t terrabrasilis/cerradodeter-syncdata:<version> -f cerrado-deter-env/Dockerfile .
 ```
 
 To run without compose but with shell terminal, use this command:
 
 ```bash
-docker run -it terrabrasilis/cerradodeter-syncdata:V0.6 sh
+docker run -it terrabrasilis/cerradodeter-syncdata:<version> sh
 ```
 
 
 To run without compose and without shell terminal use this command:
 
 ```bash
-docker run -d --rm --name terrabrasilis_deter_cerrado -v /tmp/cerrado-deter:/usr/local/data terrabrasilis/cerradodeter-syncdata:V0.6
+docker run -d --rm --name terrabrasilis_deter_cerrado -v /tmp/cerrado-deter:/usr/local/data terrabrasilis/cerradodeter-syncdata:<version>
 ```
 
 ## Run using compose
+
+Change the docker image version on docker-compose.yml file before run.
 
 Are two ways for run this service using docker-compose.
 
