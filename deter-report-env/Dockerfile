@@ -17,7 +17,7 @@
 # --------------------------------------------------------------------------------
 #
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
-FROM python:3.5.2-alpine
+FROM python:3.5.10-alpine
 
 ARG VERSION="1.0.0"
 
@@ -39,11 +39,7 @@ RUN apk update \
     postgresql-dev \
     libpq \
     libxslt-dev \
-    libxml2-dev \
-    tzdata
-
-# define the timezone to run cron
-ENV TZ=America/Sao_Paulo
+    libxml2-dev
 
 # define the install path env var
 ENV INSTALL_PATH /usr/local
