@@ -10,4 +10,4 @@ services:
 
   # Cerrado deter harvesting
   cerradodeter:
-    image: terrabrasilis/cerradodeter:<version>
+    image: terrabrasilis/cerradodeter-syncdata:<version>

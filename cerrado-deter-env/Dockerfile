@@ -1,11 +1,11 @@
 # To build image for this dockerfile use this command:
-#   docker build -t terrabrasilis/cerradodeter-syncdata:V0.6 -f cerrado-deter-env/Dockerfile .
+#   docker build -t terrabrasilis/cerradodeter-syncdata:<version> -f cerrado-deter-env/Dockerfile .
 #
 # To run without compose but with shell terminal use this command:
-#   docker run --rm --name terrabrasilis_deter_cerrado -v $PWD/cerrado-deter/data:/usr/local/data -it terrabrasilis/cerradodeter-syncdata:V0.6 sh
+#   docker run --rm --name terrabrasilis_deter_cerrado -v $PWD/cerrado-deter/data:/usr/local/data -it terrabrasilis/cerradodeter-syncdata:<version> sh
 #
 # To run without compose and without shell terminal use this command:
-#   docker run -d --rm --name terrabrasilis_deter_cerrado -v $PWD/cerrado-deter/data:/usr/local/data terrabrasilis/cerradodeter-syncdata:V0.6
+#   docker run -d --rm --name terrabrasilis_deter_cerrado -v $PWD/cerrado-deter/data:/usr/local/data terrabrasilis/cerradodeter-syncdata:<version>
 # 
 # Information from doc of help about run one container without an explicit service. Run in background
 # --------------------------------------------------------------------------------
@@ -17,11 +17,13 @@
 # --------------------------------------------------------------------------------
 #
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
-FROM python:3.5.2-alpine
+FROM python:3.5.10-alpine
+
+ARG VERSION="1.0.0"
 
 LABEL "br.inpe.dpi"="INPE/DPI-TerraBrasilis"
 LABEL br.inpe.dpi.terrabrasilis="microservice"
-LABEL version="V0.6"
+LABEL version=${VERSION}
 LABEL author="Andre Carvalho"
 LABEL author.email="andre.carvalho@inpe.br"
 LABEL description="This microservice provides a harvesting to get the alerts \
@@ -39,11 +41,7 @@ RUN apk update \
     postgresql-dev \
     libpq \
     libxslt-dev \
-    libxml2-dev \
-    tzdata
-
-# define the timezone to run cron
-ENV TZ=America/Sao_Paulo
+    libxml2-dev
 
 # define the install path env var
 ENV INSTALL_PATH /usr/local
