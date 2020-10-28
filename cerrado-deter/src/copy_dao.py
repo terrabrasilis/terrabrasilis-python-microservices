@@ -132,8 +132,8 @@ class CopyDao:
         @return string, the path and name for output file with SQL insert statements or false if error.
         """
         read_from_table = sql_filter = write_to_table = ""
-        read_from_table = "{0}.{1}".format(self.output_cfg["schema"], self.output_cfg["table"])
-        write_to_table = "{0}.{1}".format(self.input_cfg["schema"], self.input_cfg["table"])
+        write_to_table = "{0}.{1}".format(self.output_cfg["schema"], self.output_cfg["table"])
+        read_from_table = "{0}.{1}".format(self.input_cfg["schema"], self.input_cfg["table"])
 
         if filter_area:
             sql_filter = "ST_Area(ST_Transform(spatial_data,4326)::geography)/1000000 > {0}".format(filter_area)
@@ -145,7 +145,7 @@ class CopyDao:
         sql += "satellite, sensor, spatial_data, area_total_km, path_row, quadrant,view_date, created_date, updated_date, auditar, control) VALUES(' || "
         sql += "object_id || ',''' || cell_oid || ''',''' || local_name || ''',''' || class_name || ''',' || scene_id || ',' || task_id || ',''' || "
         sql += "satellite || ''',''' || sensor || ''',''' || spatial_data::text || ''',' || ST_Area(ST_Transform(spatial_data,4326)::geography)/1000000 || ',' || "
-        sql += "quote_nullable(path_row) || ',' || quote_nullable(quadrant) || ',''' || view_date || ''',' || quote_nullable(created_date) || ',' || quote_nullable(updated_date) || ',' || "
+        sql += "quote_nullable(path || '_' || row) || ',' || quote_nullable(quadrant) || ',''' || view_date || ''',' || quote_nullable(created_date) || ',' || quote_nullable(updated_date) || ',' || "
         sql += "auditar || ',' || quote_nullable(control) || ');') as inserts "
         sql += "FROM {0} ".format(read_from_table)
 
