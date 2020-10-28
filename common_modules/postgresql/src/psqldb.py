@@ -40,10 +40,10 @@ class PsqlDB:
             conf = ConfigLoader(relative_path, filename, section)
             self.params = conf.get()
             # get user and password for postgres from secrets
-            self.db_user = os.getenv("POSTGRES_USER_FILE", "postgres")
+            self.db_user = os.getenv("POSTGRES_USER_FILE", self.params["user"])
             if os.path.exists(self.db_user):
                 self.db_user = open(self.db_user, 'r').read()
-            self.db_pass = os.getenv("POSTGRES_PASS_FILE", "postgres")
+            self.db_pass = os.getenv("POSTGRES_PASS_FILE", self.params["password"])
             if os.path.exists(self.db_pass):
                 self.db_pass = open(self.db_pass, 'r').read()
         except Exception as configError:
