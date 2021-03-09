@@ -123,7 +123,7 @@ class ReadDataDao:
         finally:
             self.db.close()
 
-        if(len(data)>1 and len(data[0])==3):
+        if(len(data)>=1 and len(data[0])==3):
             for record in data:
                 if(record[2]!=None):
                     row={
