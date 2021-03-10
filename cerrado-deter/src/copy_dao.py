@@ -57,7 +57,7 @@ class CopyDao:
         Warning: This method opens connection, run the process and close connection.
         """
 
-        start_date = end_date = None
+        start_date = max_created_date = max_view_date = None
 
         try:
 
@@ -66,17 +66,17 @@ class CopyDao:
                 # DROP the output table for renew all data
                 self.__dropOutputTable()
             else:
-                start_date = self.__getLastDate()
+                start_date, max_view_date = self.__getLastDate()
 
             self.__generateInsertScript(start_date)
             self.__writeToOutputTable()
 
-            end_date = self.__getLastDate()
+            max_created_date, max_view_date = self.__getLastDate()
 
         except BaseException as error:
             raise error
         
-        return start_date, end_date
+        return start_date, max_created_date, max_view_date
 
     def __dropOutputTable(self):
         """
@@ -101,29 +101,30 @@ class CopyDao:
 
     def __getLastDate(self):
         """
-        Read the last date from output table to created date.
+        Read the last date from output table to created date and to view date.
 
-        @return string, one value, the last created date.
+        @return string, two values, the max created date and the max view date.
         """
-        date = None
+        created = view = None
 
         if self.__outputTableExists():
             # select max date from output table
-            sql = "SELECT MAX(created_date::date)::varchar "
+            sql = "SELECT MAX(created_date::date)::varchar, MAX(view_date::date)::varchar "
             sql += "FROM {0}.{1} ".format(self.output_cfg["schema"], self.output_cfg["table"])
             try:
                 self.outputdb.connect()
                 data = self.outputdb.fetchData(sql)
             except BaseException:
                 # by default return None
-                return date
+                return created, view
             finally:
                 self.outputdb.close()
 
-            if(len(data)==1 and len(data[0])==1):
-                date = data[0][0]
+            if(len(data)==1 and len(data[0])==2):
+                created = data[0][0]
+                view = data[0][1]
         
-        return date
+        return created, view
 
     def __generateInsertScript(self, from_date=None, filter_area=0.03, file_name=None):
         """
