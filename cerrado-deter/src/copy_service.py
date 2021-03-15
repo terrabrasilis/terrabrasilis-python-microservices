@@ -41,7 +41,7 @@ class CopyService:
                 detail = "Copy all alerts to the production table for publish table."
             else:
                 detail = "Processed alerts to the interval between {0} and {1}.".format(start_date, max_created_date)
-            self.__sendMail(detail, max_created_date, True)
+            self.__sendMail(detail, max_created_date, max_view_date, True)
             
         except BaseException as error:
             with open(self.LOG_FILE, "a") as lf:
