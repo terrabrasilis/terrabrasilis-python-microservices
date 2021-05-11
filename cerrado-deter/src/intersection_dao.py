@@ -372,7 +372,7 @@ class IntersectionDao:
             sql_insert += "SELECT tb1.origin_gid, tb1.classname, tb1.quadrant, tb1.path_row, tb1.view_date, "
             sql_insert += "tb1.created_date, tb1.sensor, tb1.satellite, tb1.areatotalkm, tb1.areauckm, "
             sql_insert += "tb1.uc, tb1.areamunkm, tb1.county, tb1.uf, tb1.geom, tb1.gid "
-            sql_insert += "FROM ({0}) as tb1".format(sql)
+            sql_insert += "FROM ({0}) as tb1 WHERE tb1.uf!='PA'".format(sql)
 
             sql = sql_insert
         else:
