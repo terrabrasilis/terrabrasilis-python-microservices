@@ -35,10 +35,10 @@ class CopyDao:
     def __loadConfigurations(self,relative_path):
         # read model parameters
         try:
-            inputcfg = ConfigLoader(relative_path, 'model.cfg', 'production')
-            self.input_cfg = inputcfg.get()
-            outputcfg = ConfigLoader(relative_path, 'model.cfg', 'publish')
-            self.output_cfg = outputcfg.get()
+            productioncfg = ConfigLoader(relative_path, 'model.cfg', 'production')
+            self.production_cfg = productioncfg.get()
+            publishcfg = ConfigLoader(relative_path, 'model.cfg', 'publish')
+            self.publish_cfg = publishcfg.get()
         except Exception as configError:
             raise configError
 
@@ -90,7 +90,7 @@ class CopyDao:
         drop_table = "DROP TABLE IF EXISTS"
         try:
             self.outputdb.connect()
-            sql = '{0} {1}.{2}'.format(drop_table, self.output_cfg["schema"], self.output_cfg["table"])
+            sql = '{0} {1}.{2}'.format(drop_table, self.publish_cfg["schema"], self.publish_cfg["table"])
             self.outputdb.execQuery(sql)
             self.outputdb.commit()
         except Exception as error:
@@ -110,7 +110,7 @@ class CopyDao:
         if self.__outputTableExists():
             # select max date from output table
             sql = "SELECT MAX(created_date::date)::varchar, MAX(view_date::date)::varchar "
-            sql += "FROM {0}.{1} ".format(self.output_cfg["schema"], self.output_cfg["table"])
+            sql += "FROM {0}.{1} ".format(self.publish_cfg["schema"], self.publish_cfg["table"])
             try:
                 self.outputdb.connect()
                 data = self.outputdb.fetchData(sql)
@@ -133,8 +133,8 @@ class CopyDao:
         @return string, the path and name for output file with SQL insert statements or false if error.
         """
         read_from_table = sql_filter = write_to_table = ""
-        write_to_table = "{0}.{1}".format(self.output_cfg["schema"], self.output_cfg["table"])
-        read_from_table = "{0}.{1}".format(self.input_cfg["schema"], self.input_cfg["table"])
+        write_to_table = "{0}.{1}".format(self.publish_cfg["schema"], self.publish_cfg["table"])
+        read_from_table = "{0}.{1}".format(self.production_cfg["schema"], self.production_cfg["table"])
 
         if filter_area:
             sql_filter = "ST_Area(ST_Transform(spatial_data,4326)::geography)/1000000 > {0}".format(filter_area)
@@ -177,7 +177,7 @@ class CopyDao:
         except BaseException as error:
             raise error
 
-        data_file = self.data_dir + self.output_cfg['output_data_file']
+        data_file = self.data_dir + self.publish_cfg['output_data_file']
         if not os.path.exists(data_file):
             raise MissingParameterError('Import data file','File, {0}, was not found.'.format(data_file))
         
@@ -201,7 +201,7 @@ class CopyDao:
     
     def __writeScriptToFile(self, content, file_name=None):
 
-        output_file = self.output_cfg['output_data_file']
+        output_file = self.publish_cfg['output_data_file']
 
         if file_name:
             output_file = file_name
@@ -219,7 +219,7 @@ class CopyDao:
 
     def __outputTableExists(self):
 
-        sql = "SELECT EXISTS(SELECT * FROM information_schema.tables WHERE table_name='{0}')".format(self.output_cfg["table"])
+        sql = "SELECT EXISTS(SELECT * FROM information_schema.tables WHERE table_name='{0}')".format(self.publish_cfg["table"])
 
         try:
             self.outputdb.connect()
@@ -233,7 +233,7 @@ class CopyDao:
 
     def __createOutputTable(self):
 
-        sql = "CREATE TABLE {0}.{1} ".format(self.output_cfg["schema"], self.output_cfg["table"])
+        sql = "CREATE TABLE {0}.{1} ".format(self.publish_cfg["schema"], self.publish_cfg["table"])
         sql += "( "
         sql += "object_id integer NOT NULL, "
         sql += "cell_oid character varying(255), "
@@ -252,7 +252,7 @@ class CopyDao:
         sql += "updated_date timestamp without time zone, "
         sql += "auditar character varying(5), "
         sql += "control integer, "
-        sql += "CONSTRAINT {0}_pk PRIMARY KEY (object_id) ".format(self.output_cfg["table"])
+        sql += "CONSTRAINT {0}_pk PRIMARY KEY (object_id) ".format(self.publish_cfg["table"])
         sql += ") "
         sql += "WITH ( "
         sql += "OIDS = FALSE "
