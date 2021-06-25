@@ -70,35 +70,46 @@ class PublisherService:
                     onlyFileName=fileToMove.split(".tif")
                     fileSplit = onlyFileName[0].split("_")
 
-                    pathToReadToMove = fromPath + "/" + fileToMove
+                    if not fileSplit[4].isdigit():
+                        self.__log("Ignore this file because file name is wrong: "+fileToMove)
+                        msgToEmailBody = msgToEmailBody + fileToMove + " (IGNORED)\r\n"
 
-                    ## build the complete path
-                    month = self.__getStringMonthByNumberMonth(self.__convertNumber(fileSplit[4][2:4]))
-                    if month == "Invalid": 
-                        pathCompleteToMove = toPath + "/" + fileSplit[4][4:]
+                        pathCompleteToMove = fromPath + "/../wrong"
+                        ## move file to wrong files dir
+                        self.__moveFile(filesToMove, pathToReadToMove, pathCompleteToMove)
                     else:
-                        pathCompleteToMove = toPath + "/" + fileSplit[4][4:] + "/" + month
-                    
-                    ## if the complete path not exists then create
-                    if not os.path.exists(pathCompleteToMove):
-                        os.makedirs(pathCompleteToMove)
-                    
-                    ## move file to publish path
-                    self.__log("Move file {0} from {1} to {2}...".format(fileToMove, pathToReadToMove, pathCompleteToMove))
-                    if os.path.exists(pathToReadToMove): 
-                        shutil.move(pathToReadToMove, pathCompleteToMove + "/" + fileToMove)
-                    
-                    ## really publish the layers
-                    if os.path.isfile(pathCompleteToMove + "/" + fileToMove):
-                        self.__publish(pathCompleteToMove, fileToMove)
-                        msgToEmailBody = msgToEmailBody + fileToMove + "\r\n"
-                        sendEmail = True
+                        pathToReadToMove = fromPath + "/" + fileToMove
+
+                        ## build the complete path
+                        month = self.__getStringMonthByNumberMonth(self.__convertNumber(fileSplit[4][2:4]))
+                        if month == "Invalid": 
+                            pathCompleteToMove = toPath + "/" + fileSplit[4][4:]
+                        else:
+                            pathCompleteToMove = toPath + "/" + fileSplit[4][4:] + "/" + month
+
+                        ## move file to publish path
+                        self.__moveFile(filesToMove, pathToReadToMove, pathCompleteToMove)
+                        
+                        ## really publish the layers
+                        if os.path.isfile(pathCompleteToMove + "/" + fileToMove):
+                            self.__publish(pathCompleteToMove, fileToMove)
+                            msgToEmailBody = msgToEmailBody + fileToMove + "\r\n"
+                            sendEmail = True
             
             if sendEmail:
                 self.__sendMail(msgToEmailBody)
                         
         except Exception as error:
             self.__log(error)
+
+    def __moveFile(self, fileToMove, pathToReadToMove, pathCompleteToMove):
+        ## if the complete path not exists then create
+        if not os.path.exists(pathCompleteToMove):
+            os.makedirs(pathCompleteToMove)
+        ## move file
+        self.__log("Move file {0} from {1} to {2}...".format(fileToMove, pathToReadToMove, pathCompleteToMove))
+        if os.path.exists(pathToReadToMove):
+            shutil.move(pathToReadToMove, pathCompleteToMove + "/" + fileToMove)
 
     """
     Execute Geoserver publish layers
