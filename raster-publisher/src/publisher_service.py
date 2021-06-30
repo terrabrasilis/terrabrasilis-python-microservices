@@ -76,7 +76,7 @@ class PublisherService:
 
                         pathCompleteToMove = fromPath + "/../wrong"
                         ## move file to wrong files dir
-                        self.__moveFile(filesToMove, pathToReadToMove, pathCompleteToMove)
+                        self.__moveFile(fileToMove, pathToReadToMove, pathCompleteToMove)
                     else:
                         pathToReadToMove = fromPath + "/" + fileToMove
 
@@ -88,7 +88,7 @@ class PublisherService:
                             pathCompleteToMove = toPath + "/" + fileSplit[4][4:] + "/" + month
 
                         ## move file to publish path
-                        self.__moveFile(filesToMove, pathToReadToMove, pathCompleteToMove)
+                        self.__moveFile(fileToMove, pathToReadToMove, pathCompleteToMove)
                         
                         ## really publish the layers
                         if os.path.isfile(pathCompleteToMove + "/" + fileToMove):
