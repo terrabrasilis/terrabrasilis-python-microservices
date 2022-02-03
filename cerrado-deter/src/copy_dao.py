@@ -243,7 +243,7 @@ class CopyDao:
         sql += "task_id integer, "
         sql += "satellite text, "
         sql += "sensor text, "
-        sql += "spatial_data geometry(Polygon,4674), "
+        sql += "spatial_data geometry(MultiPolygon,4674), "
         sql += "area_total_km double precision, "
         sql += "path_row character varying(10), "
         sql += "quadrant character varying(1), "
