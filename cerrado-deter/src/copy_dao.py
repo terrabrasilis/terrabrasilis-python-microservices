@@ -144,10 +144,10 @@ class CopyDao:
 
         sql = "SELECT ('INSERT INTO {0} (object_id, cell_oid, local_name, class_name, scene_id, task_id,".format(write_to_table)
         sql += "satellite, sensor, spatial_data, area_total_km, path_row, quadrant,view_date, created_date, updated_date, auditar, control) VALUES(' || "
-        sql += "object_id || ',''' || cell_oid || ''',''' || local_name || ''',''' || class_name || ''',' || scene_id || ',' || task_id || ',''' || "
+        sql += "object_id || ',' || quote_nullable(cell_oid) || ',' || quote_nullable(local_name) || ',''' || class_name || ''',' || quote_nullable(scene_id) || ',' || quote_nullable(task_id) || ',''' || "
         sql += "satellite || ''',''' || sensor || ''',''' || spatial_data::text || ''',' || ST_Area(ST_Transform(spatial_data,4326)::geography)/1000000 || ',' || "
         sql += "quote_nullable(path || '_' || row) || ',' || quote_nullable(quadrant) || ',''' || view_date || ''',' || quote_nullable(created_date) || ',' || quote_nullable(updated_date) || ',' || "
-        sql += "auditar || ',' || quote_nullable(control) || ');') as inserts "
+        sql += "quote_nullable(auditar) || ',' || quote_nullable(control) || ');') as inserts "
         sql += "FROM {0} ".format(read_from_table)
 
         if sql_filter:
