@@ -247,7 +247,8 @@ class IntersectionDao:
         # calculate total area to complete table contents
         self.__computeTotalArea()
         # create gist index to improve intersections
-        self.__createSpatialIndex(table=f"{self.cfg_data["jobber_schema"]}.{self.cfg_data["jobber_tables"]["tb1"]}")
+        table="{0}.{1}".format(self.cfg_data["jobber_schema"],self.cfg_data["jobber_tables"]["tb1"])
+        self.__createSpatialIndex(table)
 
     def __computeTotalArea(self):
 
@@ -343,7 +344,8 @@ class IntersectionDao:
         self.__basicExecute(sql)
 
         # create gist index to improve intersections
-        self.__createSpatialIndex(table=f"{self.cfg_data["jobber_schema"]}.{self.cfg_data["jobber_tables"]["tb4"]}")
+        table="{0}.{1}".format(self.cfg_data["jobber_schema"],self.cfg_data["jobber_tables"]["tb1"])
+        self.__createSpatialIndex(table)
     
 
     def __intersectUcAlertsAndCounty(self):
