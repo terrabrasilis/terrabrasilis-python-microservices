@@ -247,8 +247,7 @@ class IntersectionDao:
         # calculate total area to complete table contents
         self.__computeTotalArea()
         # create gist index to improve intersections
-        table="{0}_{1}".format(self.cfg_data["jobber_schema"],self.cfg_data["jobber_tables"]["tb1"])
-        self.__createSpatialIndex(table)
+        self.__createSpatialIndex(self.cfg_data["jobber_schema"],self.cfg_data["jobber_tables"]["tb1"])
 
     def __computeTotalArea(self):
 
@@ -257,9 +256,9 @@ class IntersectionDao:
         sql = "UPDATE {0}.{1} SET area_total_km = ST_Area((geometries)::geography)/1000000".format(self.cfg_data["jobber_schema"], self.cfg_data["jobber_tables"]["tb1"])
         self.__basicExecute(sql)
 
-    def __createSpatialIndex(self, table, geomColumn="geometries"):
+    def __createSpatialIndex(self, schema, table, column="geometries"):
 
-        sql = "CREATE INDEX sidx_{0}_{1} ON {0} USING gist ({1}) TABLESPACE pg_default".format(table,geomColumn)
+        sql = "CREATE INDEX sidx_{0}_{1}_{2} ON {0}.{1} USING gist ({2}) TABLESPACE pg_default".format(schema,table,column)
         self.__basicExecute(sql)
 
     def __intersectAlertsAndUC(self):
@@ -344,8 +343,7 @@ class IntersectionDao:
         self.__basicExecute(sql)
 
         # create gist index to improve intersections
-        table="{0}_{1}".format(self.cfg_data["jobber_schema"],self.cfg_data["jobber_tables"]["tb4"])
-        self.__createSpatialIndex(table)
+        self.__createSpatialIndex(self.cfg_data["jobber_schema"],self.cfg_data["jobber_tables"]["tb4"])
     
 
     def __intersectUcAlertsAndCounty(self):
