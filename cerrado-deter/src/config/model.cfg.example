@@ -12,10 +12,7 @@ drop_file: deter_cerrado_drop.sql
 [publish_sfs]
 sequence: deter_cerrado_api_seq
 jobber_schema: public
-jobber_tables: {'tb1':'deter_cerrado_alerts',
-                'tb2':'deter_cerrado_alerts_ucs',
-                'tb3':'deter_cerrado_alerts_outside_ucs',
-                'tb4':'deter_cerrado_alerts_ucs_joined'}
+jobber_tables: {'tb1':'deter_cerrado_alerts'}
 input_schema: public
 input_table: mapeamento_2018_geral
 output_schema: public

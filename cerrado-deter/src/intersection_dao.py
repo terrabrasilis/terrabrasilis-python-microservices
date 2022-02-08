@@ -69,10 +69,8 @@ class IntersectionDao:
 
             self.__createSequence()
             self.__createDataTable(last_date)
+            self.__intersectAlertsAndCounty()
             self.__intersectAlertsAndUC()
-            self.__intersectAlertsAndOutsideUC()
-            self.__joinUcAlerts()
-            self.__intersectUcAlertsAndCounty()
 
             self.__dropSequence()
 
@@ -263,90 +261,24 @@ class IntersectionDao:
 
     def __intersectAlertsAndUC(self):
 
-        sql = "CREATE TABLE {0}.{1} AS ".format(self.cfg_data["jobber_schema"], self.cfg_data["jobber_tables"]["tb2"])
-        sql += "SELECT alerts.gid as origin_gid, "
-        sql += "alerts.class_name, "
-        sql += "alerts.quadrant, "
-        sql += "alerts.path_row, "
-        sql += "alerts.view_date, "
-        sql += "alerts.created_date, "
-        sql += "alerts.sensor, "
-        sql += "alerts.satellite, "
-        sql += "alerts.area_total_km, "
-        sql += "ST_Area(ST_Intersection(alerts.geometries, uc.geom)::geography)/1000000 as area_uc_km, "
-        sql += "uc.nome as uc, "
-        sql += "ST_Intersection(alerts.geometries, uc.geom) as geometries, "
-        sql += "nextval('{0}.{1}') as gid ".format(self.cfg_data["jobber_schema"], self.cfg_data["sequence"])
-        sql += "FROM {0}.{1} as alerts ".format(self.cfg_data["jobber_schema"], self.cfg_data["jobber_tables"]["tb1"])
-        sql += "INNER JOIN {0}.{1} as uc ON ( (alerts.geometries && uc.geom) AND ST_Intersects(alerts.geometries, uc.geom) )".format(self.cfg_data["jobber_schema"], self.cfg_data["uc_table"])
-
+        sql  = "WITH UCS AS ( "
+        sql += "	SELECT nome_uc1, esfera_pri, geom "
+        sql += "	FROM {0}.{1} ".format(self.cfg_data["jobber_schema"], self.cfg_data["uc_table"])
+        sql += "	ORDER BY esfera_pri DESC "
+        sql += "), ALERTS_UCS AS ( "
+        sql += "	SELECT alerts.gid, ST_Area(ST_Intersection(alerts.geom, uc.geom)::geography)/1000000 as area, "
+        sql += "    uc.nome_uc1 as nome "
+        sql += "	FROM {0}.{1} as alerts ".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
+        sql += "	INNER JOIN UCS as uc ON ( (alerts.geom && uc.geom) AND ST_Intersects(alerts.geom, uc.geom) ) "
+        sql += ") "
+        sql += "UPDATE {0}.{1} ".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
+        sql += "SET areauckm=uc.area,uc=uc.nome "
+        sql += "FROM ALERTS_UCS as uc "
+        sql += "WHERE {0}.{1}.gid=uc.gid ".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
         self.__resetSequence()
         self.__basicExecute(sql)
 
-    def __intersectAlertsAndOutsideUC(self):
-
-        sql = "CREATE TABLE {0}.{1} AS ".format(self.cfg_data["jobber_schema"], self.cfg_data["jobber_tables"]["tb3"])
-        sql += "SELECT alerts.gid as origin_gid, "
-        sql += "alerts.class_name, "
-        sql += "alerts.quadrant, "
-        sql += "alerts.path_row, "
-        sql += "alerts.view_date, "
-        sql += "alerts.created_date, "
-        sql += "alerts.sensor, "
-        sql += "alerts.satellite, "
-        sql += "alerts.area_total_km, "
-        sql += "(0)::double precision as area_uc_km, "
-        sql += "(NULL)::character varying as uc, "
-        sql += "ST_Intersection(alerts.geometries, outside.geom) as geometries, "
-        sql += "nextval('{0}.{1}') as gid ".format(self.cfg_data["jobber_schema"], self.cfg_data["sequence"])
-        sql += "FROM {0}.{1} as alerts ".format(self.cfg_data["jobber_schema"], self.cfg_data["jobber_tables"]["tb1"])
-        sql += "INNER JOIN {0}.{1} as outside ON ( (alerts.geometries && outside.geom) AND ST_Intersects(alerts.geometries, outside.geom) )".format(self.cfg_data["jobber_schema"], self.cfg_data["limit_cerrado"])
-
-        self.__resetSequence()
-        self.__basicExecute(sql)
-
-    def __joinUcAlerts(self):
-
-        sql = "CREATE TABLE {0}.{1} AS ".format(self.cfg_data["jobber_schema"], self.cfg_data["jobber_tables"]["tb4"])
-        sql += "SELECT nextval('{0}.{1}') as gid, * FROM ( ".format(self.cfg_data["jobber_schema"], self.cfg_data["sequence"])
-        sql += "SELECT uc.origin_gid, "
-        sql += "uc.class_name, "
-        sql += "uc.quadrant, "
-        sql += "uc.path_row, "
-        sql += "uc.view_date, "
-        sql += "uc.created_date, "
-        sql += "uc.sensor, "
-        sql += "uc.satellite, "
-        sql += "uc.area_total_km, "
-        sql += "uc.area_uc_km, "
-        sql += "uc.uc, "
-        sql += "uc.geometries "
-        sql += "FROM {0}.{1} as uc ".format(self.cfg_data["jobber_schema"], self.cfg_data["jobber_tables"]["tb2"])
-        sql += "UNION "
-        sql += "SELECT outucs.origin_gid, "
-        sql += "outucs.class_name, "
-        sql += "outucs.quadrant, "
-        sql += "outucs.path_row, "
-        sql += "outucs.view_date, "
-        sql += "outucs.created_date, "
-        sql += "outucs.sensor, "
-        sql += "outucs.satellite, "
-        sql += "outucs.area_total_km, "
-        sql += "outucs.area_uc_km, "
-        sql += "outucs.uc, "
-        sql += "outucs.geometries "
-        sql += "FROM {0}.{1} as outucs ".format(self.cfg_data["jobber_schema"], self.cfg_data["jobber_tables"]["tb3"])
-        sql += ") as ta "
-        sql += "WHERE origin_gid is not null"
-
-        self.__resetSequence()
-        self.__basicExecute(sql)
-
-        # create gist index to improve intersections
-        self.__createSpatialIndex(self.cfg_data["jobber_schema"],self.cfg_data["jobber_tables"]["tb4"])
-    
-
-    def __intersectUcAlertsAndCounty(self):
+    def __intersectAlertsAndCounty(self):
 
         tableExists = self.__outputTableExists()
 
@@ -361,15 +293,16 @@ class IntersectionDao:
         sql += "alerts.sensor, "
         sql += "alerts.satellite, "
         sql += "alerts.area_total_km as areatotalkm, "
-        sql += "alerts.area_uc_km as areauckm, "
-        sql += "alerts.uc, "
+        sql += "NULL::double precision as areauckm, "
+        sql += "NULL::character varying(255) as uc, "
         sql += "ST_Area(ST_Intersection(alerts.geometries, mun.geom)::geography)/1000000 as areamunkm, "
         sql += "mun.nm_municip as county, "
         sql += "mun.nm_sigla as uf, "
         sql += "coalesce(ST_Intersection(alerts.geometries, mun.geom), alerts.geometries) as geom, "
         sql += "nextval('{0}.{1}') as gid ".format(self.cfg_data["jobber_schema"], self.cfg_data["sequence"])
-        sql += "FROM {0}.{1} as alerts ".format(self.cfg_data["jobber_schema"], self.cfg_data["jobber_tables"]["tb4"])
-        sql += "LEFT JOIN {0}.{1} as mun ON ( (alerts.geometries && mun.geom) AND ST_Intersects(alerts.geometries, mun.geom) )".format(self.cfg_data["jobber_schema"], self.cfg_data["county_table"])
+        sql += "FROM {0}.{1} as alerts ".format(self.cfg_data["jobber_schema"], self.cfg_data["jobber_tables"]["tb1"])
+        sql += "LEFT JOIN {0}.{1} as mun ".format(self.cfg_data["jobber_schema"], self.cfg_data["county_table"])
+        sql += "ON ( (alerts.geometries && mun.geom) AND ST_Intersects(alerts.geometries, mun.geom) )"
 
         if tableExists:
             
@@ -391,12 +324,6 @@ class IntersectionDao:
         self.__resetSequence(last_gid)
         self.__basicExecute(sql)
 
-        """
-        Update area for Features where occurs the fractionation after intersect with counties
-        """
-        sql = "UPDATE {0}.{1} SET areauckm=ST_Area(geom::geography)/1000000 WHERE uc is not null".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
-        self.__basicExecute(sql)
-
         if not tableExists:
             
             """
@@ -414,7 +341,7 @@ class IntersectionDao:
             """
             Create geographic index
             """
-            sql = "CREATE INDEX deter_cerrado_geom_index ON {0}.{1} USING gist (geom)".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
+            sql = "CREATE INDEX {1}_geom_index ON {0}.{1} USING gist (geom)".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
             self.__basicExecute(sql)
         else:
             sql = "UPDATE {0}.{1} SET publish_month=overlay(view_date::varchar placing '01' from 9 for 2)::date".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
