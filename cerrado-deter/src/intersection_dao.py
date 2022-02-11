@@ -298,7 +298,8 @@ class IntersectionDao:
         sql += "ST_Area(ST_Intersection(alerts.geometries, mun.geom)::geography)/1000000 as areamunkm, "
         sql += "mun.nm_municip as county, "
         sql += "mun.nm_sigla as uf, "
-        sql += "coalesce(ST_Intersection(alerts.geometries, mun.geom), alerts.geometries) as geom, "
+        sql += "mun.cd_geocmu as geocod, "
+        sql += "coalesce(ST_Multi(ST_CollectionExtract( ST_Intersection(alerts.geometries, mun.geom) ,3)), alerts.geometries) as geom, "
         sql += "nextval('{0}.{1}') as gid ".format(self.cfg_data["jobber_schema"], self.cfg_data["sequence"])
         sql += "FROM {0}.{1} as alerts ".format(self.cfg_data["jobber_schema"], self.cfg_data["jobber_tables"]["tb1"])
         sql += "LEFT JOIN {0}.{1} as mun ".format(self.cfg_data["jobber_schema"], self.cfg_data["county_table"])
@@ -311,10 +312,10 @@ class IntersectionDao:
             sql_insert = "INSERT INTO {0}.{1} ".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
             sql_insert += "(origin_gid, classname, quadrant, path_row, view_date, "
             sql_insert += "created_date, sensor, satellite, areatotalkm, areauckm, "
-            sql_insert += "uc, areamunkm, county, uf, geom, gid) "
+            sql_insert += "uc, areamunkm, county, uf, geocod, geom, gid) "
             sql_insert += "SELECT tb1.origin_gid, tb1.classname, tb1.quadrant, tb1.path_row, tb1.view_date, "
             sql_insert += "tb1.created_date, tb1.sensor, tb1.satellite, tb1.areatotalkm, tb1.areauckm, "
-            sql_insert += "tb1.uc, tb1.areamunkm, tb1.county, tb1.uf, tb1.geom, tb1.gid "
+            sql_insert += "tb1.uc, tb1.areamunkm, tb1.county, tb1.uf, tb1.geocod, tb1.geom, tb1.gid "
             sql_insert += "FROM ({0}) as tb1 ".format(sql)
 
             sql = sql_insert
@@ -336,6 +337,11 @@ class IntersectionDao:
             sql = "CREATE INDEX publish_month_idx ON {0}.{1} USING btree (publish_month ASC NULLS LAST)".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
             self.__basicExecute(sql)
             sql = "ALTER TABLE {0}.{1} CLUSTER ON publish_month_idx".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
+            self.__basicExecute(sql)
+
+            sql = "ALTER TABLE {0}.{1} ALTER COLUMN gid SET NOT NULL".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
+            self.__basicExecute(sql)
+            sql = "ALTER TABLE {0}.{1} ADD PRIMARY KEY (gid)".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
             self.__basicExecute(sql)
 
             """
