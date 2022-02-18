@@ -1,10 +1,8 @@
 # -*- encoding: utf-8 -*-
 #!/usr/bin/python3
-import textwrap
 import smtplib
-import sys, os
-sys.path.insert(0, os.path.realpath(os.path.dirname(__file__)+'/../configuration/src'))
-from common_config import ConfigLoader
+import os
+from configuration import ConfigLoader
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 

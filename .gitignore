@@ -2,7 +2,8 @@
 # ignore python intermediary files
 *.pyc
 # ignore virtual environment for python
-*/env/
+**/venv/
+**/env/
 # ignore log directory
 */log/
 **/*.log
