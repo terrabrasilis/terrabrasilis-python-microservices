@@ -1,6 +1,6 @@
-import os, sys
+import os
 from publisher_service import PublisherService
-from datetime import date, datetime, timedelta
+from datetime import datetime
 import logging
 
 realLogPath = os.path.abspath(os.path.dirname(__file__) + '/../log')

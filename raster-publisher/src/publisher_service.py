@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
 
-import os, sys
+import os
 import shutil
-sys.path.insert(0, os.path.realpath( os.path.realpath(os.path.dirname(__file__))+'/../../' ))
 import logging
 import requests
 
-from datetime import date, datetime, timedelta
-from common_modules.configuration.src.common_config import ConfigLoader
-
-sys.path.insert(0, os.path.realpath( os.path.realpath(os.path.dirname(__file__))+'/../../common_modules/email' ) )
-from send import SenderMail
+from datetime import datetime
+from configuration import ConfigLoader
+from mail.send import SenderMail
 
 class PublisherService:
 
     """
     Constructor
     """
-    def __init__(self): 
+    def __init__(self):
+
         self.docker_env = os.getenv("DOCKER_ENV", False)
 
         realLogPath = os.path.abspath(os.path.dirname(__file__) + '/../log')
@@ -33,20 +31,20 @@ class PublisherService:
                     filemode='w',
                     level=logging.DEBUG)
                
-        relative_path = os.path.abspath(os.path.dirname(__file__) + '/config') + "/"
-        self.__loadConfigurations(relative_path)
+        self._config_path = os.path.abspath(os.path.dirname(__file__) + '/config') + "/"
+        self.__loadConfigurations()
         self.__manipulateFile()
 
     """
     Configurations loading
     """
-    def __loadConfigurations(self, relative_path):
+    def __loadConfigurations(self):
         try:                        
             section = 'developer'
             if self.docker_env:
                 section = 'production'
 
-            pathcfg = ConfigLoader(relative_path, 'publisher-paths.cfg', section)
+            pathcfg = ConfigLoader(self._config_path, 'publisher-paths.cfg', section)
             self.path_cfg = pathcfg.get()
 
         except Exception as error:
@@ -61,7 +59,6 @@ class PublisherService:
         toPath = os.path.realpath(self.path_cfg["to"])
         
         try:
-            sendEmail = False
             filesToMove = os.listdir(fromPath)
             msgToEmailBody = ""
             for fileToMove in filesToMove:
@@ -69,8 +66,9 @@ class PublisherService:
                     # file name without extension
                     onlyFileName=fileToMove.split(".tif")
                     fileSplit = onlyFileName[0].split("_")
+                    pathToReadToMove = fromPath + "/" + fileToMove
 
-                    if not fileSplit[4].isdigit():
+                    if not self.__checkFileNamePattern(fileparts=fileSplit):
                         self.__log("Ignore this file because file name is wrong: "+fileToMove)
                         msgToEmailBody = msgToEmailBody + fileToMove + " (IGNORED)\r\n"
 
@@ -78,8 +76,6 @@ class PublisherService:
                         ## move file to wrong files dir
                         self.__moveFile(fileToMove, pathToReadToMove, pathCompleteToMove)
                     else:
-                        pathToReadToMove = fromPath + "/" + fileToMove
-
                         ## build the complete path
                         month = self.__getStringMonthByNumberMonth(self.__convertNumber(fileSplit[4][2:4]))
                         if month == "Invalid": 
@@ -93,14 +89,27 @@ class PublisherService:
                         ## really publish the layers
                         if os.path.isfile(pathCompleteToMove + "/" + fileToMove):
                             self.__publish(pathCompleteToMove, fileToMove)
-                            msgToEmailBody = msgToEmailBody + fileToMove + "\r\n"
-                            sendEmail = True
+                            msgToEmailBody = msgToEmailBody + fileToMove + " (ACCEPTED)\r\n"
             
-            if sendEmail:
-                self.__sendMail(msgToEmailBody)
+            self.__sendMail(msgToEmailBody)
                         
         except Exception as error:
             self.__log(error)
+
+    def __checkFileNamePattern(self, fileparts):
+        """
+        Check if some parts of file name is comformable with pattern.
+        """
+        satellite={
+            "AMAZONIA-1":"WFI",
+            "CBERS-4":"AWFI",
+            "RESOURCESAT-2":"AWIFS",
+            "CBERS-4A":"WFI"
+        }
+        try:
+            return satellite[fileparts[0]]==fileparts[1] and fileparts[4].isdigit()
+        except Exception:
+            return False
 
     def __moveFile(self, fileToMove, pathToReadToMove, pathCompleteToMove):
         ## if the complete path not exists then create
@@ -266,13 +275,14 @@ class PublisherService:
         See email.cfg to change the send email configurations.
         The path to email.cfg is defined below.
         """
-        pathToConfigFile="/usr/local/data/config"
+        pathToConfigFile=self._config_path
 
-        body_msg = ['Raster image publish information.' + datetime.now().strftime('%d-%m-%Y_%H:%M:%S.%f'), 'Images published: \r\n' +  msg ]
+        body_msg = ['Raster image publish information.' + datetime.now().strftime('%d-%m-%Y_%H:%M:%S.%f'), 'Images accepted or ignored: \r\n' +  msg ]
         body_msg = '\r\n'.join(body_msg)#.encode('utf-8')
         try:
             mail = SenderMail(pathToConfigFile)
-            mail.send('[GEOSERVER-PUBLISHER] - Publish Raster Images.', body_msg)
+            subject="[GEOSERVER-PUBLISHER] - {0}.".format(self.path_cfg["workspace"])
+            mail.send(subject, body_msg)
         except BaseException as error:
             self.__log(error)
 
