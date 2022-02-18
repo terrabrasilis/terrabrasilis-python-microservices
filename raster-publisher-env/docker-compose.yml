@@ -8,8 +8,9 @@ version: "3.2"
 
 services:
   raster-publisher:
-    image: terrabrasilis/raster-publisher:v0.1
-    volumes:       
-      - /home/jether/Desktop/teste_deterb_imagem/servidor_imagens_projeto_fip_cerrado/scripts/to_process/translate:/usr/local/data/processed
-      - /home/jether/Desktop/teste_deterb_imagem/servidor_imagens_projeto_fip_cerrado/scripts/:/usr/local/raster-publisher/log
-      - /home/jether/Desktop/DEV/workspace/terrabrasilis/terrabrasilis-webapp/python-microservices/raster-publisher/src/config/:/usr/local/data/config
+    image: terrabrasilis/raster-publisher:v1.2.1
+    volumes:
+      - /home/andre/Dados/tmp/data/cerrado/raster/processed:/usr/local/data/processed
+      - /home/andre/Dados/tmp/data/cerrado/raster/log:/usr/local/raster-publisher/log
+      - /home/andre/Dados/tmp/data/cerrado/raster/config:/usr/local/data/config
+      - /home/andre/Dados/tmp/data/cerrado/geoserver:/var/local/geoserver/data-files/cerrado

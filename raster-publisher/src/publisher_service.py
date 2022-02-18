@@ -72,7 +72,7 @@ class PublisherService:
                         self.__log("Ignore this file because file name is wrong: "+fileToMove)
                         msgToEmailBody = msgToEmailBody + fileToMove + " (IGNORED)\r\n"
 
-                        pathCompleteToMove = fromPath + "/../wrong"
+                        pathCompleteToMove = fromPath + "/wrong"
                         ## move file to wrong files dir
                         self.__moveFile(fileToMove, pathToReadToMove, pathCompleteToMove)
                     else:
