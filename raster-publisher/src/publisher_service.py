@@ -59,10 +59,13 @@ class PublisherService:
         toPath = os.path.realpath(self.path_cfg["to"])
         
         try:
+            sendEmail = False
             filesToMove = os.listdir(fromPath)
             msgToEmailBody = ""
             for fileToMove in filesToMove:
                 if ".tif" in fileToMove:
+                    
+                    sendEmail = True
                     # file name without extension
                     onlyFileName=fileToMove.split(".tif")
                     fileSplit = onlyFileName[0].split("_")
@@ -91,7 +94,8 @@ class PublisherService:
                             self.__publish(pathCompleteToMove, fileToMove)
                             msgToEmailBody = msgToEmailBody + fileToMove + " (ACCEPTED)\r\n"
             
-            self.__sendMail(msgToEmailBody)
+            if sendEmail:
+                self.__sendMail(msgToEmailBody)
                         
         except Exception as error:
             self.__log(error)
