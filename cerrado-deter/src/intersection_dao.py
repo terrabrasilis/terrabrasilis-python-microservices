@@ -325,6 +325,10 @@ class IntersectionDao:
         self.__resetSequence(last_gid)
         self.__basicExecute(sql)
 
+        """ Remove alerts that are out of bounds therefore areamunkm IS NULL """
+        sql = "DELETE FROM {0}.{1} WHERE areamunkm IS NULL ".format(self.cfg_data["output_schema"], self.cfg_data["output_table"])
+        self.__basicExecute(sql)
+
         if not tableExists:
             
             """
