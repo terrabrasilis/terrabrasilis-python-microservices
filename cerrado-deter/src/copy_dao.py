@@ -1,8 +1,7 @@
 #!/usr/bin/python3
-import os, sys
-sys.path.insert(0, os.path.realpath( os.path.realpath(os.path.dirname(__file__))+'/../../' ) )
-from common_modules.configuration.src.common_config import ConfigLoader
-from common_modules.postgresql.src.psqldb import PsqlDB
+import os
+from configuration import ConfigLoader
+from postgresql import PsqlDB
 from app_exceptions import DatabaseError, MissingParameterError
 
 

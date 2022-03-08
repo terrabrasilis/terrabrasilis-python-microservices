@@ -1,10 +1,9 @@
 #!/usr/bin/python3
-import os, sys
+import os
 import traceback
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from intersection_dao import IntersectionDao
-sys.path.insert(0, os.path.realpath( os.path.realpath(os.path.dirname(__file__))+'/../../common_modules/email' ) )
-from send import SenderMail
+from mail.send import SenderMail
 
 class IntersectionService:
 
