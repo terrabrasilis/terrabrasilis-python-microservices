@@ -24,6 +24,8 @@ class CopyDao:
         self.__loadConfigurations(relative_path)
         # get env var setted in Dockerfile
         self.is_docker_env = os.getenv("DOCKER_ENV", False)
+        # get env var setted in docker stack
+        self.date_to_copy = os.getenv("CREATED_DATE", '2022-12-01')
         # If the environment is docker then use the absolute path to write log file
         if self.is_docker_env:
             self.data_dir='/usr/local/data/'
@@ -64,6 +66,8 @@ class CopyDao:
             if self.__outputTableExists() and renew:
                 # DROP the output table for renew all data
                 self.__dropOutputTable()
+                # fixed date based on last clean interpretation database (created_date)
+                start_date = self.date_to_copy
             else:
                 start_date, max_view_date = self.__getLastDate()
 
