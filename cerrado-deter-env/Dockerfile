@@ -6,11 +6,8 @@
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
 FROM python:3.5.10-alpine
 
-ARG VERSION="1.0.0"
-
 LABEL "br.inpe.dpi"="INPE/DPI-TerraBrasilis"
 LABEL br.inpe.dpi.terrabrasilis="microservice"
-LABEL version=${VERSION}
 LABEL author="Andre Carvalho"
 LABEL author.email="andre.carvalho@inpe.br"
 LABEL description="This microservice provides a harvesting to get the alerts \
