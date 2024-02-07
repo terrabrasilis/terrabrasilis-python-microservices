@@ -143,7 +143,7 @@ class CopyDao:
             sql_filter = "ST_Area(ST_Transform(spatial_data,4326)::geography)/1000000 > {0}".format(filter_area)
 
         if from_date:
-            sql_filter = " {0} AND created_date::date > '{1}'".format(sql_filter, from_date)
+            sql_filter = " {0} AND created_date::date > '{1}' AND auditar='0' ".format(sql_filter, from_date)
 
         sql = "SELECT ('INSERT INTO {0} (object_id, cell_oid, local_name, class_name, scene_id, task_id,".format(write_to_table)
         sql += "satellite, sensor, spatial_data, area_total_km, path_row, quadrant,view_date, created_date, updated_date, auditar, control) VALUES(' || "
