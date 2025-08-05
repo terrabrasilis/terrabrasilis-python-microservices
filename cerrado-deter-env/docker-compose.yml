@@ -4,10 +4,13 @@
 # To run in detached mode
 # docker-compose -f cerrado-deter-environment/docker-compose.yml up -d
 
-version: "3"
-
 services:
 
   # Cerrado deter harvesting
-  cerradodeter:
-    image: terrabrasilis/cerradodeter-syncdata:<version>
+  deter_cerrado_sync:
+    image: terrabrasilis/cerradodeter-syncdata:v1.5.0
+    volumes:
+      - /home/andre/Dados/tmp/cerrado-nb:/usr/local/data
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      AUDITED_DATE: '2025-07-31'

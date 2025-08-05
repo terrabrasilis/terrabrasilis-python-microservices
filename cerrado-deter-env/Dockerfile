@@ -15,7 +15,7 @@ of deforestation from production DETER cerrado database, intersects them with \
 interest areas and write the resultant data in publish database. \
 No ports are exposed, runs only autonomous job via cron."
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 #-------------Application Specific Stuff ----------------------------------------------------
 
 RUN apk update \
@@ -32,7 +32,7 @@ RUN apk update \
 ENV TZ=America/Sao_Paulo
 ENV LIBRARY_PATH=/lib:/usr/lib
 # define the install path env var
-ENV INSTALL_PATH /usr/local
+ENV INSTALL_PATH=/usr/local
 
 # Install Python requirements
 # ------------------------------------------------------
@@ -55,7 +55,7 @@ ADD cerrado-deter-env/dailyharvesting.cron /etc/crontabs/root
 RUN chmod +x ${INSTALL_PATH}/cron_exec.sh \
 && chmod +x /etc/crontabs/root
 
-ENV DOCKER_ENV True
+ENV DOCKER_ENV=True
 
 VOLUME ["${INSTALL_PATH}/data"]
 
