@@ -49,6 +49,12 @@ class PsqlDB:
         except Exception as configError:
             raise configError
 
+    def getDBLinkConnection(self):
+        """
+        Return a connection string to be used in dblink connection.
+        """
+        return "hostaddr={0} port={1} dbname={2} user={3} password={4}".format(self.params["host"],self.params["port"],self.params["dbname"],self.db_user,self.db_pass)
+
     def connect(self):
         try:
             # connect to the PostgreSQL server
