@@ -54,7 +54,7 @@ class IntersectionService:
         except BaseException as error:
             
             with open(self.LOG_FILE, "a") as lf:
-                lf.write(''.join(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__)))
+                lf.write(''.join(traceback.format_exception(type(error), value=error, tb=error.__traceback__)))
                 lf.write(datetime.today().strftime('%d-%m-%Y %H:%M:%S'))
                 lf.write('-' * 50)
             self.__sendMail('Failure when run intersection process. See the log file, {0}, for more detail.'.format(self.LOG_FILE), reference_date, False)
@@ -80,6 +80,6 @@ class IntersectionService:
             mail.send('[DETER-CERRADO] - {0} on data INTERSECTION.'.format('Success' if state else 'Failure'), body_msg)
         except BaseException as error:
             with open(self.LOG_FILE, "a") as lf:
-                lf.write(''.join(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__)))
+                lf.write(''.join(traceback.format_exception(type(error), value=error, tb=error.__traceback__)))
                 lf.write(datetime.today().strftime('%d-%m-%Y %H:%M:%S'))
                 lf.write('-' * 50)

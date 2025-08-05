@@ -25,7 +25,7 @@ class CopyDao:
         # get env var setted in Dockerfile
         self.is_docker_env = os.getenv("DOCKER_ENV", False)
         # get env var setted in docker stack
-        self.date_to_copy = os.getenv("CREATED_DATE", '2022-12-01')
+        self.date_to_copy = os.getenv("AUDITED_DATE", '2025-08-01')
         # If the environment is docker then use the absolute path to write log file
         if self.is_docker_env:
             self.data_dir='/usr/local/data/'
@@ -58,7 +58,7 @@ class CopyDao:
         Warning: This method opens connection, run the process and close connection.
         """
 
-        start_date = max_created_date = max_view_date = None
+        max_audited_date = None
 
         try:
 
@@ -66,21 +66,217 @@ class CopyDao:
                 # verify if table exists
                 if self.__outputTableExists():
                     # DROP the output table for renew all data
-                    self.__dropOutputTable()
+                    self.__recreateOutputTable()
                 # fixed date based on last clean interpretation database (created_date)
-                start_date = self.date_to_copy
+                max_audited_date = self.date_to_copy
             else:
-                start_date, max_view_date = self.__getLastDate()
+                if not self.__outputTableExists():
+                    self.__createOutputTable()
 
-            self.__generateInsertScript(start_date)
-            self.__writeToOutputTable()
+                max_audited_date = self.__getMaxAuditedDate()
+                max_audited_date = max_audited_date if max_audited_date else self.date_to_copy
 
-            max_created_date, max_view_date = self.__getLastDate()
+            if not max_audited_date:
+                raise MissingParameterError('max_audited_date', 'Max audited date is not defined.')
+
+            # copy data via SQL View
+            self.__copyFromInputToOutput(max_audited_date)
+
+            min_view_date, max_view_date, num_alerts = self.__getInformationAboutLastSync()
 
         except BaseException as error:
             raise error
         
-        return start_date, max_created_date, max_view_date
+        return min_view_date, max_view_date, num_alerts
+
+    def __getMaxAuditedDate(self):
+        """
+        Read the last date from output table to audited date.
+
+        Its used to filter new data from production database.
+
+        @return string, one value, the max audited date.
+        """
+        audited = None
+
+        if self.__outputTableExists():
+            # select max date from output table
+            sql = "SELECT MAX(audited_date::date)::varchar "
+            sql += "FROM {0}.{1} ".format(self.publish_cfg["schema"], self.publish_cfg["table"])
+            try:
+                self.outputdb.connect()
+                data = self.outputdb.fetchData(sql)
+            except BaseException:
+                # by default return None
+                return audited
+            finally:
+                self.outputdb.close()
+
+            if(len(data)==1 and len(data[0])==1):
+                audited = data[0][0]
+        
+        return audited
+
+    def __getInformationAboutLastSync(self):
+        """
+        Read the min and max view date from output table after copy.
+
+        Its used to send email with sync information.
+
+        @return string, three values, the minimum and maximum viewing date and the number of alerts copied.
+        """
+        min_view = max_view = num_alerts = None
+
+        if self.__outputTableExists():
+            # select max date from output table
+            sql = "SELECT MIN(view_date::date)::varchar, MAX(view_date::date)::varchar, COUNT(*)"
+            sql = f"{sql} FROM {self.publish_cfg["schema"]}.{self.publish_cfg["table"]} "
+            sql = f"{sql} WHERE created_date = (now())::date"
+            try:
+                self.outputdb.connect()
+                data = self.outputdb.fetchData(sql)
+            except BaseException:
+                # by default return None
+                return min_view, max_view, num_alerts
+            finally:
+                self.outputdb.close()
+
+            if(len(data)==1 and len(data[0])==3):
+                min_view = data[0][0]
+                max_view = data[0][1]
+                num_alerts = data[0][2]
+        
+        return min_view, max_view, num_alerts
+
+    def __createSQLView(self):
+        """
+        Create the SQL View called production_alert.
+        This view is used to copy data from input table to output table.
+
+        No return value but in error raise a DatabaseError exception.
+        Warning: This method opens connection, run the process and close connection.
+        """
+        # connection to dblink
+        dblink_connection = self.inputdb.getDBLinkConnection()
+
+        sql = f"CREATE OR REPLACE VIEW {self.production_cfg["schema"]}.{self.production_cfg["table"]} "
+        sql = f"{sql} AS "
+        sql = f"{sql} SELECT remote_data.gid, "
+        sql = f"{sql} remote_data.cell_oid, "
+        sql = f"{sql} remote_data.uuid, "
+        sql = f"{sql} remote_data.path_row, "
+        sql = f"{sql} remote_data.sensor, "
+        sql = f"{sql} remote_data.satellite, "
+        sql = f"{sql} remote_data.class_name, "
+        sql = f"{sql} remote_data.area_km, "
+        sql = f"{sql} remote_data.view_date, "
+        sql = f"{sql} remote_data.created_date, "
+        sql = f"{sql} remote_data.audited_date, "
+        sql = f"{sql} remote_data.geom "
+        sql = f"{sql} FROM dblink('{dblink_connection}'::text, "
+        sql = f"{sql} 'SELECT object_id as gid, cell_oid, uuid::text, path_row, sensor, satellite, class_name, area as area_km, view_date, "
+        sql = f"{sql} created_date, audited_date, spatial_data as geom FROM {self.publish_cfg["schema"]}.{self.publish_cfg["table"]}'::text) "
+        sql = f"{sql} remote_data(gid integer, cell_oid character varying(254), uuid text, path_row character varying(100), sensor character varying(100), "
+        sql = f"{sql} satellite character varying(255), class_name character varying(254), area_km double precision, view_date date, "
+        sql = f"{sql} created_date date, audited_date date, geom geometry(Polygon,4674)); "
+
+        try:
+            self.outputdb.connect()
+            self.outputdb.execQuery(sql)
+            self.outputdb.commit()
+        except BaseException as error:
+            self.outputdb.rollback()
+            raise DatabaseError('Database error:', error)
+        finally:
+            self.outputdb.close()
+
+    def __dropSQLView(self):
+        """
+        Drop the SQL View called production_alert.
+        """
+
+        drop_view = "DROP VIEW IF EXISTS"
+        try:
+            self.outputdb.connect()
+            sql = '{0} {1}.{2}'.format(drop_view, self.production_cfg["schema"], self.production_cfg["table"])
+            self.outputdb.execQuery(sql)
+            self.outputdb.commit()
+        except Exception as error:
+            self.outputdb.rollback()
+            raise DatabaseError('Database error:', error)
+        finally:
+            self.outputdb.close()
+
+
+    def __copyFromInputToOutput(self, from_date=None, filter_area=0.03):
+        """
+        Copy data from input table to output table, filter by audited date and min area.
+        That method is used to copy using the SQL View called production_alert.
+
+        @param from_date: string, the date to start copy data.
+        @param filter_area: number, the min area to get alert data.
+        """
+
+        if not from_date or not filter_area:
+            raise MissingParameterError('From date or min area', 'From date or min area is not defined.')
+        
+        read_from_table = write_to_table = ""
+        write_to_table = "{0}.{1}".format(self.publish_cfg["schema"], self.publish_cfg["table"])
+        read_from_table = "{0}.{1}".format(self.production_cfg["schema"], self.production_cfg["table"])
+        sql_filters = []
+
+        if filter_area:
+            sql_filters.append(f"ST_Area(ST_Transform(geom,4326)::geography)/1000000 > {filter_area}")
+
+        if from_date:
+            sql_filters.append(f"audited_date::date > '{from_date}' AND view_date IS NOT NULL")
+
+        sql = f"INSERT INTO {write_to_table} (object_id, cell_oid, uuid, path_row, sensor, satellite, class_name, area_total_km, view_date, audited_date, spatial_data) "
+        sql = f"{sql} SELECT gid, cell_oid, uuid, path_row, sensor, satellite, class_name, area_km, view_date, audited_date, ST_Multi(geom) "
+        sql = f"{sql} FROM {read_from_table} "
+
+        if len(sql_filters) > 0:
+            sql = f"{sql} WHERE {" AND ".join(sql_filters)}"
+
+        try:
+            self.__createSQLView()
+
+            self.outputdb.connect()
+            self.outputdb.execQuery(sql)
+            self.outputdb.commit()
+        except BaseException as error:
+            self.outputdb.rollback()
+            raise DatabaseError('Database error:', error)
+        finally:
+            self.outputdb.close()
+            self.__dropSQLView()
+
+
+    def __outputTableExists(self) -> bool:
+
+        sql = "SELECT EXISTS(SELECT * FROM information_schema.tables WHERE table_name='{0}')".format(self.publish_cfg["table"])
+
+        try:
+            self.outputdb.connect()
+            data = self.outputdb.fetchData(sql)
+        except BaseException as error:
+            raise error
+        finally:
+            self.outputdb.close()
+        
+        return data[0][0]
+
+    def __recreateOutputTable(self):
+        """
+        Recreate the output table.
+        This method is used when the output table exists and we want to copy all data from input table.
+
+        No return value but in error raise a DatabaseError exception.
+        Warning: This method opens connection, run the process and close connection.
+        """
+
+        self.__dropOutputTable()
+        self.__createOutputTable()
 
     def __dropOutputTable(self):
         """
@@ -103,148 +299,14 @@ class CopyDao:
         finally:
             self.outputdb.close()
 
-    def __getLastDate(self):
-        """
-        Read the last date from output table to created date and to view date.
-
-        @return string, two values, the max created date and the max view date.
-        """
-        created = view = None
-
-        if self.__outputTableExists():
-            # select max date from output table
-            sql = "SELECT MAX(created_date::date)::varchar, MAX(view_date::date)::varchar "
-            sql += "FROM {0}.{1} ".format(self.publish_cfg["schema"], self.publish_cfg["table"])
-            try:
-                self.outputdb.connect()
-                data = self.outputdb.fetchData(sql)
-            except BaseException:
-                # by default return None
-                return created, view
-            finally:
-                self.outputdb.close()
-
-            if(len(data)==1 and len(data[0])==2):
-                created = data[0][0]
-                view = data[0][1]
-        
-        return created, view
-
-    def __generateInsertScript(self, from_date=None, filter_area=0.03, file_name=None):
-        """
-        Read data from output table and generate a set of INSERT statements as SQL Script.
-
-        @return string, the path and name for output file with SQL insert statements or false if error.
-        """
-        read_from_table = sql_filter = write_to_table = ""
-        write_to_table = "{0}.{1}".format(self.publish_cfg["schema"], self.publish_cfg["table"])
-        read_from_table = "{0}.{1}".format(self.production_cfg["schema"], self.production_cfg["table"])
-
-        if filter_area:
-            sql_filter = "ST_Area(ST_Transform(spatial_data,4326)::geography)/1000000 > {0}".format(filter_area)
-
-        if from_date:
-            sql_filter = " {0} AND created_date::date > '{1}' AND auditar='0' ".format(sql_filter, from_date)
-
-        sql = "SELECT ('INSERT INTO {0} (object_id, cell_oid, local_name, class_name, scene_id, task_id,".format(write_to_table)
-        sql += "satellite, sensor, spatial_data, area_total_km, path_row, quadrant,view_date, created_date, updated_date, auditar, control) VALUES(' || "
-        sql += "object_id || ',' || quote_nullable(cell_oid) || ',' || quote_nullable(local_name) || ',''' || class_name || ''',' || quote_nullable(scene_id) || ',' || quote_nullable(task_id) || ',''' || "
-        sql += "satellite || ''',''' || sensor || ''',''' || ST_Multi(spatial_data)::text || ''',' || ST_Area(ST_Transform(spatial_data,4326)::geography)/1000000 || ',' || "
-        sql += "quote_nullable(path || '_' || row) || ',' || quote_nullable(quadrant) || ',''' || view_date || ''',' || quote_nullable(created_date) || ',' || quote_nullable(updated_date) || ',' || "
-        sql += "quote_nullable(auditar) || ',' || quote_nullable(control) || ');') as inserts "
-        sql += "FROM {0} ".format(read_from_table)
-
-        if sql_filter:
-            sql += "WHERE {0}".format(sql_filter)
-
-        data_file = False
-
-        try:
-            self.inputdb.connect()
-            data = self.inputdb.fetchData(sql)
-            data_file = self.__writeScriptToFile(data, file_name)
-        except BaseException as error:
-            raise error
-        finally:
-            self.inputdb.close()
-
-        return data_file
-
-
-    def __writeToOutputTable(self):
-        
-        # Before insert data, verify if table exists.
-        try:
-            if not self.__outputTableExists():
-                # Case not it'll be created.
-                self.__createOutputTable()
-        except BaseException as error:
-            raise error
-
-        data_file = self.data_dir + self.publish_cfg['output_data_file']
-        if not os.path.exists(data_file):
-            raise MissingParameterError('Import data file','File, {0}, was not found.'.format(data_file))
-        
-        inserts = None
-        try:
-            inserts = [line.rstrip('\r\n') for line in open(data_file)]
-        except Exception as error:
-            raise MissingParameterError('Import data file','Error: {0}'.format(error))
-        
-        try:
-            self.outputdb.connect()
-            for insert in inserts:
-                self.outputdb.execQuery(insert)
-            self.outputdb.commit()
-        except BaseException as error:
-            self.outputdb.rollback()
-            raise DatabaseError('Database error:', error)
-        finally:
-            self.outputdb.close()
-
-    
-    def __writeScriptToFile(self, content, file_name=None):
-
-        output_file = self.publish_cfg['output_data_file']
-
-        if file_name:
-            output_file = file_name
-
-        data_file = self.data_dir + output_file
-        f = open(data_file,"w+")
-        for i in content:
-            if i[0]:
-                f.write("{0}\r\n".format(i[0]))
-        f.close()
-        if os.path.exists(data_file):
-            return os.path.realpath(data_file)
-        else:
-            return False
-
-    def __outputTableExists(self):
-
-        sql = "SELECT EXISTS(SELECT * FROM information_schema.tables WHERE table_name='{0}')".format(self.publish_cfg["table"])
-
-        try:
-            self.outputdb.connect()
-            data = self.outputdb.fetchData(sql)
-        except BaseException as error:
-            raise error
-        finally:
-            self.outputdb.close()
-        
-        return data[0][0]
-
     def __createOutputTable(self):
 
         sql = "CREATE TABLE {0}.{1} ".format(self.publish_cfg["schema"], self.publish_cfg["table"])
         sql += "( "
         sql += "object_id integer NOT NULL, "
         sql += "cell_oid character varying(255), "
-        sql += "local_name text, "
-        sql += "class_name text, "
-        sql += "scene_id integer, "
-        sql += "task_id integer, "
+        sql += "uuid text, "
+        sql += "class_name character varying(20) NOT NULL DEFAULT 'DESMATAMENTO_CR'::character varying(20), "
         sql += "satellite text, "
         sql += "sensor text, "
         sql += "spatial_data geometry(MultiPolygon,4674), "
@@ -252,10 +314,8 @@ class CopyDao:
         sql += "path_row character varying(10), "
         sql += "quadrant character varying(1), "
         sql += "view_date date, "
-        sql += "created_date timestamp without time zone, "
-        sql += "updated_date timestamp without time zone, "
-        sql += "auditar character varying(5), "
-        sql += "control integer, "
+        sql += "created_date date NOT NULL DEFAULT (now())::date, "
+        sql += "audited_date date, "
         sql += "CONSTRAINT {0}_pk PRIMARY KEY (object_id) ".format(self.publish_cfg["table"])
         sql += ") "
         sql += "WITH ( "

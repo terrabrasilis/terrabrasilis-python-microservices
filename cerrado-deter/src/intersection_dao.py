@@ -51,7 +51,7 @@ class IntersectionDao:
 
             if renew:
                 # Truncate the output table for renew all data
-                self.truncateOutputTable()
+                self.__truncateOutputTable()
             """
             # Drop the table is bad practice because can be cause an connection error on GeoServer.
             if renew:
@@ -60,7 +60,7 @@ class IntersectionDao:
             """
 
 
-            self.dropIntermediaryTables()
+            self.__dropIntermediaryTables()
 
             self.db.connect()
             last_date = self.__getLastDate()
@@ -82,11 +82,9 @@ class IntersectionDao:
         finally:
             self.db.close()
 
-        #self.dropIntermediaryTables()
-
         return end_date
 
-    def dropIntermediaryTables(self):
+    def __dropIntermediaryTables(self):
         """
         Drop intermediary tables from the database.
 
@@ -131,7 +129,7 @@ class IntersectionDao:
         finally:
             self.db.close()
 
-    def truncateOutputTable(self):
+    def __truncateOutputTable(self):
         """
         Truncate output table from the database.
         We using this method when want copy all data from input table and process that data and provide for API.
@@ -218,10 +216,12 @@ class IntersectionDao:
         return (gid + 1)
 
     def __createDataTable(self, last_date):
+
         sql = "CREATE TABLE {0}.{1} AS ".format(self.cfg_data["jobber_schema"], self.cfg_data["jobber_tables"]["tb1"])
         sql += "SELECT nextval('{0}.{1}') as gid, ".format(self.cfg_data["jobber_schema"], self.cfg_data["sequence"])
         sql += "alerts.object_id as origin_gid, "
         sql += "alerts.cell_oid, "
+        sql += "alerts.uuid, "
         sql += "alerts.class_name, "
         sql += "alerts.quadrant, "
         sql += "alerts.path_row, "
@@ -232,7 +232,6 @@ class IntersectionDao:
         sql += "alerts.spatial_data as geometries "
         sql += "FROM {0}.{1} as alerts ".format(self.cfg_data["input_schema"], self.cfg_data["input_table"])
         sql += "WHERE alerts.view_date IS NOT NULL "
-        #sql += "AND alerts.created_date IS NOT NULL "
 
         if last_date:
             sql += "AND alerts.created_date::date > '{0}'".format(last_date)

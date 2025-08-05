@@ -11,6 +11,31 @@ Use the example config files for create your own configurations.
 Change the extension for each .cfg.example file to .cfg and type your values.
 Caution: Do not change the keys and session names only the values.
 
+### SQLView to copy data
+
+```sql
+-- DROP VIEW public.production_alert;
+
+CREATE OR REPLACE VIEW public.production_alert
+ AS
+ SELECT remote_data.gid,
+    remote_data.cell_oid,
+    remote_data.uuid,
+    remote_data.path_row,
+    remote_data.sensor,
+    remote_data.satellite,
+    remote_data.class_name,
+    remote_data.area_km,
+    remote_data.view_date,
+    remote_data.created_date,
+    remote_data.audited_date,
+    remote_data.geom
+   FROM dblink('hostaddr=<host> port=5432 dbname=DeterCerrado user=<user> password=<password>'::text,
+   'SELECT object_id as gid, cell_oid, uuid::text, path_row, sensor, satellite, class_name, area as area_km, view_date, created_date, audited_date, spatial_data as geom FROM public.alertas'::text)
+   remote_data(gid integer, cell_oid character varying(254), uuid text, path_row character varying(100), sensor character varying(100), satellite character varying(255), class_name character varying(254), area_km double precision, view_date date, created_date date, audited_date date, geom geometry(Polygon,4674));
+
+```
+
 ## The code
 This service is written in Python 3 and its dependencies is defined in requirements.txt file at config directory.
 

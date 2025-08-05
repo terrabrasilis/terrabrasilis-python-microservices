@@ -1,20 +1,13 @@
 [production]
-host: localhost
-port: 5432
+host: 192.168.3.30
+port: 5444
 user: postgres
 password: postgres
-dbname: your_production_database_name
+dbname: DeterCerrado
 
 [publish]
-host: localhost
-port: 5432
+host: 192.168.3.30
+port: 5444
 user: postgres
 password: postgres
-dbname: your_publish_database_name
-
-[dashboarddatamodel]
-host: localhost
-port: 5432
-user: postgres
-password: postgres
-dbname: dashboard-data-model
+dbname: deter_cerrado_nb

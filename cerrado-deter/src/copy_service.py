@@ -28,36 +28,45 @@ class CopyService:
         """
         Process the copy features from production database to publish database.
         """
-        # the start_date is the maximum created_date collected before the synchronization
-        start_date = max_created_date = max_view_date = "no defined"
+        min_view_date = max_view_date = None
+        num_alerts = 0
 
         try:
             dao = CopyDao()
-            start_date, max_created_date, max_view_date = dao.copy(self.renew)
-            detail = ""
+            min_view_date, max_view_date, num_alerts = dao.copy(self.renew)
+            detail = "Copy all alerts to the production table for publish table." if self.renew else ""
 
-            if self.renew:
-                detail = "Copy all alerts to the production table for publish table."
+            if num_alerts == 0:
+                detail = "No new alerts to copy to the production table for publish table."
+                min_view_date = max_view_date = "no defined"
             else:
-                detail = "Processed alerts to the interval between {0} and {1}.".format(start_date, max_created_date)
-            self.__sendMail(detail, max_created_date, max_view_date, True)
+                detail = "Processed alerts to the interval between {0} and {1}.".format(min_view_date, max_view_date)
+            
+            # If there is alerts copied, then send an email
+            self.__sendMail(detail, min_view_date, max_view_date, num_alerts, True)
             
         except BaseException as error:
             with open(self.LOG_FILE, "a") as lf:
-                lf.write(''.join(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__)))
+                lf.write(''.join(traceback.format_exception(type(error), error, error.__traceback__)))
                 lf.write(datetime.today().strftime('%d-%m-%Y %H:%M:%S'))
                 lf.write('-' * 50)
-            self.__sendMail('Failure when run copy process. See the log file, {0}, for more detail.'.format(self.LOG_FILE), max_created_date, max_view_date, False)
+            # If there is an error, send a failure email
+            detail = f"Failure when run copy process. See the log file, {self.LOG_FILE}, for more detail."
+            self.__sendMail(msg=detail, min_view_date=min_view_date, max_view_date=max_view_date, num_alerts=num_alerts, state=False)
 
-    def __sendMail(self, msg, max_created_date, max_view_date, state):
+    def __sendMail(self, msg, min_view_date, max_view_date, num_alerts, state):
 
         pathToConfigFile="cerrado-deter/src/config"
 
+        max_view_date if max_view_date else 'no defined'
+        min_view_date if min_view_date else 'no defined'
+
+        # prepare the body message
         body_msg = ['Daily information about syncronization data.',
         'Last synchronization state: {0}'.format('Success' if state else 'Failure'),
         'Last sync date: {0}'.format(datetime.today().strftime('%d-%m-%Y %H:%M:%S')),
-        'More recent max_created_date: {0}'.format( max_created_date if max_created_date else 'no defined' ),
-        'More recent max_view_date: {0}'.format( max_view_date if max_view_date else 'no defined' ),
+        'Number of alerts copied: {0}'.format(num_alerts),
+        f'Alerts copied to date range: {min_view_date} and {max_view_date}',
         'Detailed information:',
         msg
         ]
@@ -67,6 +76,6 @@ class CopyService:
             mail.send('[DETER-CERRADO] - {0} on data SYNCHRONIZATION.'.format('Success' if state else 'Failure'), body_msg)
         except BaseException as error:
             with open(self.LOG_FILE, "a") as lf:
-                lf.write(''.join(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__)))
+                lf.write(''.join(traceback.format_exception(type(error), value=error, tb=error.__traceback__)))
                 lf.write(datetime.today().strftime('%d-%m-%Y %H:%M:%S'))
                 lf.write('-' * 50)
