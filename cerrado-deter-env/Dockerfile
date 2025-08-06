@@ -4,7 +4,7 @@
 # If you do not change, the generated image will replace the old one in the docker registry.
 # To create an image for this dockerfile, use the docker_build.sh script.
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
-FROM python:3.5.10-alpine
+FROM python:3.12.11-alpine
 
 LABEL "br.inpe.dpi"="INPE/DPI-TerraBrasilis"
 LABEL br.inpe.dpi.terrabrasilis="microservice"
